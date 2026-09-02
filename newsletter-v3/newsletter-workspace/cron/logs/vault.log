@@ -1,0 +1,7 @@
+[2026-09-02T13:11:31+00:00] [personal] Vault maintenance started.
+[2026-09-02T13:11:31+00:00] [personal] Note: 'claude' CLI not installed in path. Prompt: Workspace boundary: your current working directory is the ENTIRE workspace for profile 'personal'. Treat it as the filesystem root; NEVER read or write any path outside it (especially other profile directories). Run Vault Manager weekly maintenance: 1) Ingest unprocessed vault/inbox.json items. 2) Recompute vault/knowledge-map.json correlations and knowledge gaps. 3) Rewrite vault/learning-profile.md. 4) Verify vault/state.json counters match vault/editions.json history.
+[2026-09-02T13:11:31+00:00] [personal] Vault maintenance finished.
+[2026-09-02T13:13:25+00:00] [personal] Vault maintenance started.
+[2026-09-02T13:13:25+00:00] [personal] Note: 'claude' CLI not installed in path. Prompt: Workspace boundary: your current working directory is the ENTIRE workspace for profile 'personal'. Treat it as the filesystem root; NEVER read or write any path outside it (especially other profile directories). Run Vault Manager weekly maintenance: 1) Ingest unprocessed vault/inbox.json items. 2) Recompute vault/knowledge-map.json correlations and knowledge gaps. 3) Rewrite vault/learning-profile.md. 4) Verify vault/state.json counters match vault/editions.json history.
+[2026-09-02T13:13:25+00:00] [personal] Vault maintenance finished.
+[2026-09-02T13:13:25+00:00] Vault maintenance sweep across all profiles finished.

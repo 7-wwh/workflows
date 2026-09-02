@@ -1,0 +1,181 @@
+# Planner Agent (v2 — Vault-Aware)
+
+The Planner builds a rolling 3-day content calendar that is personalised to the user's
+vault state: what they've covered, what confused them, and what topics correlate.
+
+---
+
+## Inputs
+
+- `vault/knowledge-map.json` — topic statuses, gaps, correlations
+- `vault/followups.json` — prioritised follow-up questions
+- `vault/learning-profile.md` — user's knowledge frontier
+- `newsletter-workspace/settings.md` — **authoritative settings**: sends_per_day,
+  slot_times, delivery_days, rolling_window_days, new_topic_priority, allow_topic_split
+- `newsletter-workspace/content_plan.md` — the current forward-looking plan (may be empty)
+- `newsletter-workspace/config.json` — depth level (settings.md wins on any conflict)
+
+## Outputs
+
+- `newsletter-workspace/plan.json` (schema in `schemas.md` — slots per day)
+- `newsletter-workspace/content_plan.md` (rewritten in full every replan)
+
+---
+
+## Planning Logic (in order)
+
+### Step 0 — Plan in CHUNKS, not slots (v3.1 — mandatory)
+
+Do **not** assign topic-parts directly to slots. Two phases:
+
+**Phase 1 — Chunk decomposition.** Decompose the topic into **content chunks**:
+self-contained, individually deliverable units of learning. For each chunk record
+(in `plan.json → chunks[]`): `chunk_id`, `title`, `learning_objectives`,
+`word_estimate`, `estimated_reading_minutes` (word_estimate ÷ 225, round up),
+`standalone` (can it be read alone?), and `depends_on` (earlier chunk ids, if any).
+Chunk boundaries must follow natural narrative or conceptual boundaries — never
+split mechanically just because a topic is large.
+
+**Phase 2 — Slot arrangement.** Only after chunking, arrange chunks into the slot
+grid. One chunk per slot; leave slots EMPTY rather than overfilling.
+
+**Chunk constraints (hard):**
+- Every chunk: **10–20 minutes reading time** (~2,250–4,500 words).
+  Under 10 → merge or densify. Over 20 → split.
+- Prefer the **fewest chunks** that satisfy the constraints. A chunk must earn
+  its independence.
+
+**Phase 3 — Plan Eval gate.** Submit `plan.json` to the **Plan Evaluator** (a fresh
+subagent — see `references/plan-evaluator-agent.md`). On `verdict: "revise"`, apply
+its `revision_instructions[]` (merge, densify, or replace chunks) and resubmit.
+Max 2 revision cycles, then proceed `pass_with_warnings`. Do not run Researcher
+until the gate passes.
+
+### Step A — Resolve urgent follow-ups
+
+Check `vault/followups.json` for items with `priority: "urgent"`.
+If any exist:
+- Day 1 of the plan gets a `follow_up_slot` entry (see schema).
+- The `research_brief` for Day 1 starts with: "PRIORITY: Answer the user's question
+  '[question text]' before covering the main topic."
+
+### Step B — Fill gaps first
+
+Check `vault/knowledge-map.json → gaps[]` for items with `priority: "urgent"` or `"soon"`.
+These take precedence over new topics. A gap resolution day has:
+- Theme: "Revisiting [original topic]: [gap objective]"
+- Headline: phrased as an answer to the missed objective
+- Research brief notes: "This revisits a gap from a previous edition. Do not re-cover
+  content already in [edition_id]. Focus only on [gap objective]."
+
+### Step C′ — Insert brand-new user topics (ULTIMATE priority)
+
+This step runs **before** gap filling competes for slots and **before** any queued
+topic is placed. It exists to handle: *"the user says 'I want to learn ABC' while
+other topics are already scheduled in the rolling window."*
+
+A **new topic** is any inbox item with `type: "topic"` that is not already present in
+`knowledge-map.json → topics[]` or in the current `content_plan.md`.
+
+When `settings.md → new_topic_priority == "ultimate"` (the default):
+
+1. The new topic **must occupy the earliest available slot** in the window — ahead of
+   every already-planned topic, including topics scheduled for today.
+2. **Re-evaluate the existing plan**: load `content_plan.md` and, for every topic that
+   now conflicts with the new topic's target slot, apply (in order of preference):
+   - **Push forward** — move the displaced topic to the next free slot within the window.
+   - **Split** — if `settings.md → allow_topic_split == true` and the displaced topic has
+     2+ learning objectives, split it into parts ("Pydantic Day 2: Validators" →
+     "Validators (Part 1)" slot today 18:00 + "Settings & pydantic-core (Part 2)" slot
+     tomorrow 08:00). Each part gets its own research brief and objectives.
+   - **Backlog** — if the window (`today + rolling_window_days`, default 3 days) is full,
+     demote the displaced topic to the `Backlog` section of `content_plan.md` with its
+     original objectives intact. Backlogged topics are re-promoted by Step C as slots free up.
+3. A topic that was already **delivered** is never moved or split; only
+   `scheduled`/`planned` items are candidates for displacement.
+4. If the new topic is large (3+ objectives), it may itself be split across slots —
+   prefer one slot per day-part so no single edition exceeds length limits.
+
+### Step C — Fill remaining slots
+
+From `knowledge-map.json → topics[]` where `status == "queued"` (plus the Backlog
+section of `content_plan.md`, oldest first), fill slots that remain after Step C′.
+Pick topics that:
+1. Have not been `delivered` at the current depth level.
+2. Correlate with recently delivered topics (prefer `strength: strong` bridges).
+3. Were recommended in `learning-profile.md → Recommended Next Topics`.
+
+Prioritise correlation bridging: if a new topic shares concepts with the most recent
+delivered topic, note the bridge in `research_brief`.
+
+### Step D — Distribute across the slot grid
+
+Read `sends_per_day`, `slot_times`, `delivery_days`, and `rolling_window_days` from
+`settings.md`. The plan is a **slot grid**: `delivery_days ∩ [today, today + rolling_window_days]`
+× `slot_times` (e.g. 3 sends/day × 3 days = 9 slots). Each slot gets:
+- One main topic-part (or gap resolution) — or stays EMPTY (never overfill)
+- One optional follow-up slot (if `priority: "soon"` items exist)
+- 2–3 learning objectives calibrated to `depth` in `config.json`
+- A designated `template_type` assigned by matching the topic nature to the available templates in `assets/templates/`. The Planner should read the `TEMPLATE_METADATA` comment block at the top of each template file to understand what it's best for.
+  - If none of the templates fit distinctly, or if the topic demands an entirely different structure, assign `"custom"`.
+
+Depth calibration (unchanged from v1):
+- **Beginner**: focus on what/why; avoid how
+- **Intermediate**: include how; introduce trade-offs
+- **Advanced**: include edge cases, comparisons, deeper mechanisms
+
+### Step E — Write research briefs
+
+Each research brief (≤100 words) must include:
+- Primary angle and specific question to answer
+- Any correlation bridge to mention ("Day 1 covered X — connect to that when explaining Y")
+- What to avoid ("save Z for Day 3")
+- If the day has a follow-up slot: "Open with the follow-up answer before main content"
+
+---
+
+### Step F — Rewrite content_plan.md (mandatory, every replan)
+
+After writing `plan.json`, rewrite `newsletter-workspace/content_plan.md` **in full**:
+
+```markdown
+# Content Plan
+Last updated: [ISO8601]
+
+## Today — 2026-09-01 (3 slots)
+- [08:00] DELIVERED  | Pydantic Day 1: Models & validation
+- [13:00] SCHEDULED  | ABC Part 1: Fundamentals (NEW — moved from backlog-free request)
+- [18:00] SCHEDULED  | Pydantic Day 2: Validators (moved_from: today 13:00, split part 1/2)
+
+## Tomorrow — 2026-09-02 (3 slots)
+- [08:00] SCHEDULED | Pydantic Day 2 (Part 2): Settings & pydantic-core
+- [13:00] SCHEDULED | Topic X ...
+- [18:00] EMPTY
+
+## Day 3 — 2026-09-03 (3 slots)
+...
+
+## Backlog (unscheduled)
+- Topic Y — demoted 2026-09-01, original objectives intact
+```
+
+Statuses: `DELIVERED | SCHEDULED | EMPTY` for slots; Backlog lists demoted topics.
+Mark every moved slot with `(moved_from: ...)` so the user can audit the reshuffle.
+
+## Plan Confirmation
+
+After rewriting `content_plan.md`, present a human-readable summary **plus the diff**:
+
+```
+Day 1 | 2026-09-01 | 08:00 Pydantic D1 (delivered) | 13:00 ABC P1 (NEW) | 18:00 Pydantic D2 P1 (moved)
+Day 2 | 2026-09-02 | 08:00 Pydantic D2 P2 (split)  | 13:00 Topic X            | 18:00 —
+Day 3 | 2026-09-03 | ...
+Backlog: Topic Y
+Changes: ABC took today's 13:00 slot; Pydantic D2 moved to 18:00 and split;
+         Topic Y demoted to backlog.
+```
+
+If running interactively: ask "Does this look right? Any changes?" and wait.
+On user approval or edits: update `plan.json` + `content_plan.md` and pass the Plan Evaluator gate.
+
+**Input Agent Completion**: Once the gated plan is saved with slots marked `SCHEDULED`, the Input Agent's work is complete. Stop here. The Intermediate Agent will execute all research, drafting, and evaluation in the background during the nightly batch at `batch_time`.

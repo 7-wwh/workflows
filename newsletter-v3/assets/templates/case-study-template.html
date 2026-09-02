@@ -1,0 +1,497 @@
+<!--
+TEMPLATE_METADATA
+type: case-study
+description: For historical events, business cases, forensic teardowns, and system post-mortems.
+-->
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="supported-color-schemes" content="light dark" />
+  <title>{{NEWSLETTER_NAME}} — {{HEADLINE}}</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+  <style>
+    /* ─── Client Resets ─── */
+    html, body { margin: 0 !important; padding: 0 !important; height: 100% !important; width: 100% !important; }
+    * { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; box-sizing: border-box; }
+    div[style*="margin: 16px 0"] { margin: 0 !important; }
+    table, td { mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; }
+    table { border-spacing: 0 !important; border-collapse: collapse !important; table-layout: fixed !important; margin: 0 auto !important; }
+    img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; display: block; max-width: 100%; }
+    a { text-decoration: none; color: #c6613f; }
+    a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
+
+    /* ─── Base Typography & Body ─── */
+    body {
+      background-color: #f5f4f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.68;
+      color: #2a2a2a;
+    }
+
+    /* ─── Responsive Mobile Media Queries ─── */
+    @media only screen and (max-width: 640px) {
+      .email-container { width: 100% !important; max-width: 100% !important; margin: 0 !important; border-radius: 0 !important; }
+      .fluid-cell { padding-left: 18px !important; padding-right: 18px !important; }
+      .header-title { font-size: 23px !important; line-height: 1.25 !important; }
+      .deck { font-size: 14.5px !important; }
+      .stack-column { display: block !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; margin-bottom: 12px !important; }
+      .tl-date-col { width: 85px !important; font-size: 11.5px !important; }
+      .matrix-quadrant { display: block !important; width: 100% !important; box-sizing: border-box !important; margin-bottom: 10px !important; }
+      .stat-cell { display: block !important; width: 100% !important; box-sizing: border-box !important; margin-bottom: 10px !important; }
+      .responsive-image { width: 100% !important; height: auto !important; }
+    }
+
+    /* ─── Dark Mode Support ─── */
+    @media (prefers-color-scheme: dark) {
+      body, .email-bg { background-color: #121216 !important; }
+      .email-card { background-color: #1e1e24 !important; border-color: #2d2d38 !important; }
+      .header-bar { background-color: #11141a !important; border-color: #242933 !important; }
+      .date-line { background-color: #181820 !important; color: #a5a49e !important; border-color: #2d2d38 !important; }
+      .headline-banner h1 { color: #f5f5f7 !important; }
+      .headline-banner .deck { color: #b8b7b0 !important; }
+      .content, .intro p, .section p, .section li { color: #d6d5cf !important; }
+      .section h2 { color: #f5f5f7 !important; }
+      .glance-card { background-color: #262630 !important; border-color: #3b3b4a !important; }
+      .glance-card div { color: #ffffff !important; }
+      .glance-card li { color: #d6d5cf !important; }
+      .glance-card li strong { color: #ffffff !important; }
+      .followup-card { background-color: #242232 !important; border-color: #4b4570 !important; }
+      .followup-question { color: #d8d4f0 !important; }
+      .followup-answer { color: #c2bee0 !important; }
+      .stat-card { background-color: #262630 !important; border-color: #3b3b4a !important; }
+      .stat-num { color: #f5f5f7 !important; }
+      .stat-desc { color: #a5a49e !important; }
+      .timeline-card { background-color: #262630 !important; border-color: #3b3b4a !important; }
+      .tl-date { color: #ff9b85 !important; }
+      .tl-event { color: #d6d5cf !important; }
+      
+      /* Visual Diagram Dark Mode */
+      .matrix-card { background-color: #2a2220 !important; border-color: #4a342c !important; }
+      .matrix-head { color: #ff9b85 !important; }
+      .matrix-body { color: #e8d0c8 !important; }
+      .chart-container { background-color: #262428 !important; border-color: #423b44 !important; }
+      .chart-track { background-color: #38323c !important; }
+      .chart-label { color: #e2dce6 !important; }
+      .chart-val { color: #ffffff !important; }
+
+      .quote-card { background-color: #2a2220 !important; border-color: #c6613f !important; }
+      .quote-card p { color: #f2ddd4 !important; }
+      .quote-card .quote-attrib { color: #c49a88 !important; }
+      .mistake-card { background-color: #2b1f1d !important; border-color: #8c3623 !important; }
+      .mistake-card h3 { color: #ff9b85 !important; }
+      .mistake-card p { color: #e8c5be !important; }
+      .takeaways-card { background-color: #2a2418 !important; border-color: #8f681c !important; }
+      .takeaways-card li { color: #e8d7b5 !important; }
+      .playbook-card { background-color: #1b261d !important; border-color: #2e5939 !important; }
+      .playbook-card li { color: #c6e0cc !important; }
+      .playbook-card strong { color: #6fc285 !important; }
+      .insight-card { background-color: #2c211a !important; border-color: #c6613f !important; }
+      .insight-card p { color: #f5ded3 !important; }
+      .glossary-card { background-color: #262630 !important; border-color: #3b3b4a !important; }
+      .glossary-card td { color: #d6d5cf !important; border-color: #3b3b4a !important; }
+      .glossary-card td:first-child { color: #ffffff !important; }
+      .try-card { background-color: #16161c !important; border-color: #3b3b4a !important; }
+      .try-card p { color: #e8e6df !important; }
+      .footer-cell { background-color: #181820 !important; color: #8a8980 !important; border-color: #2d2d38 !important; }
+      .footer-cell a { color: #ff8c66 !important; }
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; background-color:#f5f4f0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+
+  <!-- ─── Hidden Inbox Preheader Text ─── -->
+  <div style="display:none; font-size:1px; color:#f5f4f0; line-height:1px; max-height:0px; max-width:0px; opacity:0; overflow:hidden; mso-hide:all;">
+    {{DECK}} &zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+  </div>
+
+  <!-- ─── Outer Wrapper Table ─── -->
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="email-bg" style="background-color:#f5f4f0; width:100%; margin:0; padding:20px 0 36px 0;">
+    <tr>
+      <td align="center" style="padding:0 8px;">
+
+        <!--[if (gte mso 9)|(IE)]>
+        <table width="620" align="center" cellpadding="0" cellspacing="0" border="0" role="presentation">
+          <tr>
+            <td>
+        <![endif]-->
+
+        <!-- ─── Main Container Card ─── -->
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="email-container email-card" style="max-width:620px; width:100%; background-color:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 3px 14px rgba(0,0,0,0.06); border:1px solid #e6e5de;">
+
+          <!-- ─── Header Bar / Masthead ─── -->
+          <tr>
+            <td class="header-bar" style="background-color:#111827; padding:18px 28px; border-bottom:1px solid #1f2937;">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                  <td align="left" style="vertical-align:middle;">
+                    <table border="0" cellpadding="0" cellspacing="0" role="presentation">
+                      <tr>
+                        <td style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:13px; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; color:#ffffff; line-height:1;">
+                          {{NEWSLETTER_NAME}}
+                        </td>
+                        <td style="padding-left:10px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:10px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:#94a3b8; line-height:1; vertical-align:middle;">
+                          &middot;&nbsp; TO UNDERSTAND
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td align="right" style="vertical-align:middle; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:700; color:#94a3b8; letter-spacing:0.08em; text-transform:uppercase;">
+                    ISSUE {{ISSUE_NUMBER}}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ─── Date Line & Slot Meta ─── -->
+          <tr>
+            <td class="date-line fluid-cell" style="background-color:#f8f8f6; padding:10px 28px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:600; color:#64748b; letter-spacing:0.06em; text-transform:uppercase; border-bottom:1px solid #e5e5e0;">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                  <td align="left" style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:600; color:#64748b; letter-spacing:0.06em; text-transform:uppercase;">
+                    {{DAY_OF_WEEK}}, {{FULL_DATE}} &nbsp;&bull;&nbsp; {{SLOT_TIME}} EDITION
+                  </td>
+                  <td align="right" style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:600; color:#64748b; letter-spacing:0.06em; text-transform:uppercase;">
+                    {{READING_TIME}} READ
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ─── Headline Banner ─── -->
+          <tr>
+            <td class="headline-banner fluid-cell" style="padding:28px 28px 22px 28px; border-bottom:1px solid #e5e5e0;">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                  <td style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:800; color:#c6613f; text-transform:uppercase; letter-spacing:0.14em; padding-bottom:8px;">
+                    {{THEME}}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom:10px;">
+                    <h1 class="header-title" style="margin:0; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:25px; font-weight:800; line-height:1.26; color:#111827; letter-spacing:-0.02em;">
+                      {{HEADLINE}}
+                    </h1>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="deck" style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:15px; line-height:1.62; color:#4b5563;">
+                    {{DECK}}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ─── Body Content ─── -->
+          <tr>
+            <td class="content fluid-cell" style="padding:26px 28px;">
+
+              <!-- ─── THIS ISSUE AT A GLANCE ─── -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="glance-card" style="background-color:#f7f6f1; border:1px solid #e4e3dc; border-left:4px solid #111827; border-radius:8px; margin-bottom:26px;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:800; color:#111827; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:10px;">
+                      EXECUTIVE BRIEFING
+                    </div>
+                    <ul style="margin:0; padding-left:18px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:14px; line-height:1.65; color:#3a3a3a;">
+                      <li style="margin-bottom:6px;"><strong>The Story:</strong> {{GLANCE_ITEM_1}}</li>
+                      <li style="margin-bottom:6px;"><strong>The Fatal Flaw:</strong> {{GLANCE_ITEM_2}}</li>
+                      <li style="margin-bottom:6px;"><strong>The Lesson:</strong> {{GLANCE_ITEM_3}}</li>
+                      <li style="margin-bottom:0;"><strong>The Detail:</strong> {{GLANCE_ITEM_4}}</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- ─── INTRO ─── -->
+              <div class="intro" style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:15px; line-height:1.68; color:#3d3d3d; margin-bottom:26px;">
+                {{INTRO_PARAGRAPHS}}
+              </div>
+
+              <!-- ─── FEATURED IMAGE / DIAGRAM SLOT ─── -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:28px;">
+                <tr>
+                  <td align="center">
+                    <img src="{{FEATURED_IMAGE_URL}}" alt="{{FEATURED_IMAGE_ALT}}" class="responsive-image" style="width:100%; max-width:560px; height:auto; border-radius:8px; border:1px solid #e4e3dc; display:block;" />
+                    <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:12px; color:#78776f; margin-top:6px; font-style:italic; text-align:center;">
+                      {{FEATURED_IMAGE_CAPTION}} &nbsp;·&nbsp; <span>Source: {{FEATURED_IMAGE_SOURCE}}</span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- ─── SECTION 1: WHAT HAPPENED & TIMELINE ─── -->
+              <div class="section" style="margin-bottom:30px;">
+                <h2 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:19px; font-weight:800; color:#111827; margin:0 0 12px 0; line-height:1.3;">
+                  {{WHAT_HAPPENED_HEADER}}
+                </h2>
+                <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:15px; line-height:1.68; color:#3d3d3d; margin-bottom:16px;">
+                  {{WHAT_HAPPENED_BODY}}
+                </div>
+
+                <!-- Timeline Table -->
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="timeline-card" style="background-color:#f7f6f1; border:1px solid #e4e3dc; border-left:3px solid #c6613f; border-radius:8px; margin:16px 0 20px 0;">
+                  <tr>
+                    <td style="padding:16px 18px;">
+                      <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:800; color:#c6613f; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:10px;">
+                        CHRONOLOGY &amp; KEY MILESTONES
+                      </div>
+                      <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:13.5px; line-height:1.55;">
+                        <tr>
+                          <td class="tl-date-col tl-date" style="width:105px; padding:6px 10px 6px 0; font-weight:700; color:#c6613f; vertical-align:top;">{{TIMELINE_DATE_1}}</td>
+                          <td class="tl-event" style="padding:6px 0; color:#3a3a3a; vertical-align:top;">{{TIMELINE_EVENT_1}}</td>
+                        </tr>
+                        <tr>
+                          <td class="tl-date-col tl-date" style="width:105px; padding:6px 10px 6px 0; font-weight:700; color:#c6613f; vertical-align:top; border-top:1px solid #e4e3dc;">{{TIMELINE_DATE_2}}</td>
+                          <td class="tl-event" style="padding:6px 0; color:#3a3a3a; vertical-align:top; border-top:1px solid #e4e3dc;">{{TIMELINE_EVENT_2}}</td>
+                        </tr>
+                        <tr>
+                          <td class="tl-date-col tl-date" style="width:105px; padding:6px 10px 6px 0; font-weight:700; color:#c6613f; vertical-align:top; border-top:1px solid #e4e3dc;">{{TIMELINE_DATE_3}}</td>
+                          <td class="tl-event" style="padding:6px 0; color:#3a3a3a; vertical-align:top; border-top:1px solid #e4e3dc;">{{TIMELINE_EVENT_3}}</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- ─── SECTION 2: THE TURNING POINT & COMPARISON CHART ─── -->
+              <div class="section" style="margin-bottom:30px;">
+                <h2 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:19px; font-weight:800; color:#111827; margin:0 0 12px 0; line-height:1.3;">
+                  {{TURNING_POINT_HEADER}}
+                </h2>
+                <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:15px; line-height:1.68; color:#3d3d3d; margin-bottom:16px;">
+                  {{TURNING_POINT_BODY}}
+                </div>
+
+                <!-- ─── VISUAL COMPONENT: METRIC & SCALE COMPARISON BAR CHART ─── -->
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="chart-container" style="background-color:#fcf8f6; border:1px solid #f0e2dc; border-radius:8px; margin:20px 0 22px 0; padding:16px;">
+                  <tr>
+                    <td>
+                      <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:800; color:#c6613f; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">
+                        SCALE &amp; FINANCIAL METRICS &middot; {{CHART_TITLE}}
+                      </div>
+                      <!-- Bar 1 -->
+                      <div style="margin-bottom:12px;">
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                          <tr>
+                            <td align="left" class="chart-label" style="font-size:12.5px; font-weight:600; color:#374151;">{{CHART_BAR_1_LABEL}}</td>
+                            <td align="right" class="chart-val" style="font-size:12.5px; font-weight:800; color:#c6613f;">{{CHART_BAR_1_VAL}}</td>
+                          </tr>
+                        </table>
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="chart-track" style="background-color:#e5e7eb; border-radius:4px; height:8px; margin-top:4px;">
+                          <tr>
+                            <td width="{{CHART_BAR_1_PCT}}%" bgcolor="#c6613f" style="border-radius:4px; height:8px;"></td>
+                            <td width="{{CHART_BAR_1_REMAIN}}%"></td>
+                          </tr>
+                        </table>
+                      </div>
+                      <!-- Bar 2 -->
+                      <div style="margin-bottom:6px;">
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                          <tr>
+                            <td align="left" class="chart-label" style="font-size:12.5px; font-weight:600; color:#374151;">{{CHART_BAR_2_LABEL}}</td>
+                            <td align="right" class="chart-val" style="font-size:12.5px; font-weight:800; color:#c6613f;">{{CHART_BAR_2_VAL}}</td>
+                          </tr>
+                        </table>
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="chart-track" style="background-color:#e5e7eb; border-radius:4px; height:8px; margin-top:4px;">
+                          <tr>
+                            <td width="{{CHART_BAR_2_PCT}}%" bgcolor="#d4952a" style="border-radius:4px; height:8px;"></td>
+                            <td width="{{CHART_BAR_2_REMAIN}}%"></td>
+                          </tr>
+                        </table>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Pull Quote Card -->
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="quote-card" style="background-color:#fdf3ef; border-left:4px solid #c6613f; border-radius:0 8px 8px 0; margin:16px 0 20px 0;">
+                  <tr>
+                    <td style="padding:16px 20px;">
+                      <p style="margin:0 0 6px 0; font-family:Georgia, serif; font-size:16px; font-style:italic; color:#3a2a20; line-height:1.5;">
+                        "{{PULL_QUOTE_TEXT}}"
+                      </p>
+                      <p class="quote-attrib" style="margin:0; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:12px; color:#8a6a55; font-weight:600;">
+                        — {{PULL_QUOTE_ATTRIB}}
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
+              </div>
+
+              <!-- ─── SECTION 3: MISTAKES & SYSTEMIC FLAWS ─── -->
+              <div class="section" style="margin-bottom:30px;">
+                <h2 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:19px; font-weight:800; color:#111827; margin:0 0 14px 0; line-height:1.3;">
+                  {{MISTAKES_HEADER}}
+                </h2>
+
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="mistake-card" style="background-color:#fdf3ef; border:1px solid #f0d5c9; border-left:4px solid #b3402a; border-radius:8px; margin-bottom:14px;">
+                  <tr>
+                    <td style="padding:16px 18px;">
+                      <h3 style="margin:0 0 6px 0; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:13.5px; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; color:#9c3822;">
+                        CRITICAL MISSTEP 01 &middot; {{MISTAKE_1_TITLE}}
+                      </h3>
+                      <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:14px; line-height:1.62; color:#3a2a20;">
+                        {{MISTAKE_1_BODY}}
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="mistake-card" style="background-color:#fdf3ef; border:1px solid #f0d5c9; border-left:4px solid #b3402a; border-radius:8px; margin-bottom:14px;">
+                  <tr>
+                    <td style="padding:16px 18px;">
+                      <h3 style="margin:0 0 6px 0; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:13.5px; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; color:#9c3822;">
+                        CRITICAL MISSTEP 02 &middot; {{MISTAKE_2_TITLE}}
+                      </h3>
+                      <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:14px; line-height:1.62; color:#3a2a20;">
+                        {{MISTAKE_2_BODY}}
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- ─── SECTION 4: LESSONS & OPERATOR PLAYBOOK ─── -->
+              <div class="section" style="margin-bottom:30px;">
+                <h2 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:19px; font-weight:800; color:#111827; margin:0 0 14px 0; line-height:1.3;">
+                  {{LESSONS_HEADER}}
+                </h2>
+
+                <div class="lesson" style="margin-bottom:22px;">
+                  <h3 style="margin:0 0 8px 0; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:16px; font-weight:800; color:#111827;">
+                    Lesson: {{LESSON_1_TITLE}}
+                  </h3>
+                  <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:15px; line-height:1.68; color:#3d3d3d; margin-bottom:12px;">
+                    {{LESSON_1_BODY}}
+                  </div>
+
+                  <!-- Key Takeaways -->
+                  <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="takeaways-card" style="background-color:#fdf6ec; border-left:4px solid #d4952a; border-radius:0 8px 8px 0; margin-bottom:10px;">
+                    <tr>
+                      <td style="padding:14px 18px;">
+                        <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:800; color:#a06f14; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">
+                          CORE STRATEGIC TAKEAWAYS
+                        </div>
+                        <ul style="margin:0; padding-left:18px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:14px; line-height:1.6; color:#4a3a20;">
+                          <li style="margin-bottom:4px;">{{LESSON_1_TAKEAWAY_1}}</li>
+                          <li style="margin-bottom:0;">{{LESSON_1_TAKEAWAY_2}}</li>
+                        </ul>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- Operator Playbook -->
+                  <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="playbook-card" style="background-color:#eef4ee; border-left:4px solid #3f7a4e; border-radius:0 8px 8px 0; margin-bottom:14px;">
+                    <tr>
+                      <td style="padding:14px 18px;">
+                        <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:800; color:#2f5e3a; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">
+                          OPERATIONAL PLAYBOOK
+                        </div>
+                        <ul style="margin:0; padding-left:18px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:14px; line-height:1.6; color:#2a3a2e;">
+                          <li style="margin-bottom:4px;"><strong style="color:#2f5e3a;">{{LESSON_1_PLAY_1_ACTION}}:</strong> {{LESSON_1_PLAY_1_DETAIL}}</li>
+                          <li style="margin-bottom:0;"><strong style="color:#2f5e3a;">{{LESSON_1_PLAY_2_ACTION}}:</strong> {{LESSON_1_PLAY_2_DETAIL}}</li>
+                        </ul>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+
+              <!-- ─── INSIGHT CALLOUT BOX ─── -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="insight-card" style="background-color:#fdf3ef; border:1px solid #f2dacd; border-left:4px solid #c6613f; border-radius:8px; margin:0 0 26px 0;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:800; color:#c6613f; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px;">
+                      CORE PRINCIPLE &amp; INSIGHT
+                    </div>
+                    <div style="font-family:Georgia, serif; font-size:15.5px; font-style:italic; line-height:1.6; color:#3a2a20;">
+                      {{INSIGHT_TEXT}}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- ─── DEFINITIONS / GLOSSARY ─── -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="glossary-card" style="background-color:#f7f6f1; border:1px solid #e4e3dc; border-radius:8px; margin:0 0 26px 0;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:800; color:#111827; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">
+                      TERMINOLOGY &amp; GLOSSARY
+                    </div>
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:13.5px; line-height:1.55;">
+                      {{DEFINITIONS_ROWS}}
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- ─── TRY THIS TODAY ─── -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="try-card" style="background-color:#111827; border-radius:8px; margin:0 0 12px 0;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:8px;">
+                      IMMEDIATE APPLICATION
+                    </div>
+                    <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:14.5px; color:#e8e6df; line-height:1.65;">
+                      {{TRY_THIS_TEXT}}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- ─── FOOTER & ENGAGEMENT LOOP ─── -->
+          <tr>
+            <td class="footer-cell fluid-cell" style="background-color:#f8f8f6; border-top:1px solid #e5e5e0; padding:24px 28px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:12px; color:#64748b; text-align:center; line-height:1.7;">
+              <div style="font-weight:700; color:#111827; margin-bottom:8px; font-size:13px; letter-spacing:0.02em;">
+                {{CUSTOM_SIGN_OFF}}
+              </div>
+              <div style="margin-bottom:12px; color:#475569; font-size:12.5px;">
+                Have questions or want a deeper dive into any topic? Simply reply directly to this email to queue it for your upcoming edition.
+              </div>
+              <div style="color:#94a3b8; font-size:11.5px; border-top:1px solid #e5e5e0; padding-top:12px; margin-top:6px;">
+                Delivered to <span style="color:#475569; font-weight:600;">{{EMAIL_ADDRESS}}</span> &nbsp;&bull;&nbsp;
+                <a href="mailto:{{EMAIL_ADDRESS}}?subject=Unsubscribe%20Intellego%20Newsletter&amp;body=Please%20unsubscribe%20my%20email%20address%20({{EMAIL_ADDRESS}})%20from%20Intellego%20Newsletter." style="color:#c6613f; text-decoration:underline; font-weight:600;">Unsubscribe via email</a>
+                <br />
+                You are receiving this digest because you are subscribed to your personal Intellego learning stream. To stop receiving these emails, click the unsubscribe link above to send a cancellation email.
+              </div>
+            </td>
+          </tr>
+
+        </table>
+        <!-- ─── /Main Container Card ─── -->
+
+        <!--[if (gte mso 9)|(IE)]>
+            </td>
+          </tr>
+        </table>
+        <![endif]-->
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

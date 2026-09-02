@@ -1,0 +1,144 @@
+{
+  "window_days": 3,
+  "slots_per_day": 3,
+  "generated_at": null,
+  "days": [
+    {
+      "day": 1,
+      "date": null,
+      "slots": [
+        {
+          "slot_time": "08:00",
+          "status": "empty",
+          "theme": null,
+          "headline": null,
+          "topic_source": null,
+          "template_type": null,
+          "learning_objectives": [],
+          "research_brief": null,
+          "part": null,
+          "moved_from": null,
+          "follow_up_slot": null
+        },
+        {
+          "slot_time": "13:00",
+          "status": "empty",
+          "theme": null,
+          "headline": null,
+          "topic_source": null,
+          "template_type": null,
+          "learning_objectives": [],
+          "research_brief": null,
+          "part": null,
+          "moved_from": null,
+          "follow_up_slot": null
+        },
+        {
+          "slot_time": "18:00",
+          "status": "empty",
+          "theme": null,
+          "headline": null,
+          "topic_source": null,
+          "template_type": null,
+          "learning_objectives": [],
+          "research_brief": null,
+          "part": null,
+          "moved_from": null,
+          "follow_up_slot": null
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "date": null,
+      "slots": [
+        {
+          "slot_time": "08:00",
+          "status": "empty",
+          "theme": null,
+          "headline": null,
+          "topic_source": null,
+          "template_type": null,
+          "learning_objectives": [],
+          "research_brief": null,
+          "part": null,
+          "moved_from": null,
+          "follow_up_slot": null
+        },
+        {
+          "slot_time": "13:00",
+          "status": "empty",
+          "theme": null,
+          "headline": null,
+          "topic_source": null,
+          "template_type": null,
+          "learning_objectives": [],
+          "research_brief": null,
+          "part": null,
+          "moved_from": null,
+          "follow_up_slot": null
+        },
+        {
+          "slot_time": "18:00",
+          "status": "empty",
+          "theme": null,
+          "headline": null,
+          "topic_source": null,
+          "template_type": null,
+          "learning_objectives": [],
+          "research_brief": null,
+          "part": null,
+          "moved_from": null,
+          "follow_up_slot": null
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "date": null,
+      "slots": [
+        {
+          "slot_time": "08:00",
+          "status": "empty",
+          "theme": null,
+          "headline": null,
+          "topic_source": null,
+          "template_type": null,
+          "learning_objectives": [],
+          "research_brief": null,
+          "part": null,
+          "moved_from": null,
+          "follow_up_slot": null
+        },
+        {
+          "slot_time": "13:00",
+          "status": "empty",
+          "theme": null,
+          "headline": null,
+          "topic_source": null,
+          "template_type": null,
+          "learning_objectives": [],
+          "research_brief": null,
+          "part": null,
+          "moved_from": null,
+          "follow_up_slot": null
+        },
+        {
+          "slot_time": "18:00",
+          "status": "empty",
+          "theme": null,
+          "headline": null,
+          "topic_source": null,
+          "template_type": null,
+          "learning_objectives": [],
+          "research_brief": null,
+          "part": null,
+          "moved_from": null,
+          "follow_up_slot": null
+        }
+      ]
+    }
+  ],
+  "chunks": [],
+  "backlog": []
+}

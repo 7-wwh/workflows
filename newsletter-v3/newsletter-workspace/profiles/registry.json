@@ -1,0 +1,5 @@
+{
+  "profiles": [
+    { "id": "personal", "enabled": true, "description": "Primary single-recipient newsletter (migrated from v3 single-workspace setup)" }
+  ]
+}
