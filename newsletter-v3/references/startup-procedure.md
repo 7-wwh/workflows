@@ -28,116 +28,69 @@ The Input Agent **must halt all standard planning/intake** and immediately run t
 
 ## The Interactive Startup Sequence
 
-The agent conducts an interactive, friendly onboarding conversation:
-
-### Phase 1 — Delivery & Scheduling
-
-Prompt the user to establish or confirm their delivery mechanics:
-
-```
-👋 Welcome to your Personal Learning Newsletter! Let's get your system dialed in.
-
-1. Delivery Address: What email address should receive your editions?
-2. Schedule: How often would you like editions delivered?
-   - Default: 3 sends/day at 08:00, 13:00, and 18:00
-   - You can also pick once daily, twice daily, or custom slot times.
-3. Timezone: What is your city/timezone? (e.g. Asia/Kuala_Lumpur, America/New_York, Europe/London)
-4. Topic Pacing:
-   - Dense (default): Multi-part topics arrive in consecutive slots (e.g. Parts 1–3 today at 08:00, 13:00, 18:00).
-   - Spaced: At most 1 part per topic per day (remaining daily slots are filled with companion topics or case studies).
-```
-
-Save validated responses into `settings.md`:
-- `email`: user email or `null` (present-file mode)
-- `sends_per_day`: integer (e.g. 3)
-- `slot_times`: array of `"HH:MM"`
-- `batch_time`: `"HH:MM"` (default `"03:00"` or user-specified background writing time)
-- `timezone`: valid IANA identifier
-- `topic_pacing`: `"dense"` or `"spaced"`
-
----
-
-### Phase 1b — Automated Hermes Cron Registration (Mandatory)
-
-**Trigger Point**: The exact moment the agent gathers the background writing time (`batch_time`) and delivery slots (`slot_times`) in Phase 1, the agent **MUST autonomously register the scheduled tasks for itself**. Do NOT wait for the user to ask, and do NOT tell the user to manually run `/cron-setup`.
-
-The agent executes the automated registration using either method:
-1. **Interactive Hermes Session** (using the native `cronjob` tool):
-   - **Intermediate Batch Job**:
-     `cronjob(action="create", name="newsletter:<profile>-batch", schedule="<batch_cron>", workdir="<profile_workspace_path>", skills=["newsletter"], prompt="Execute INTERMEDIATE AGENT batch production (Steps 4–6) for all slots scheduled for today in content_plan.md...")`
-   - **Sender Delivery Job**:
-     `cronjob(action="create", name="newsletter:<profile>-send", schedule="<slot_times_cron>", workdir="<profile_workspace_path>", skills=["newsletter"], prompt="Role: SENDER AGENT (Step 7). Retrieve outbox READY edition, deliver instantly, mark DELIVERED in content_plan.md...")`
-   - **Nightly Maintain Mode**:
-     `cronjob(action="create", name="newsletter:maintain-all", schedule="30 2 * * *", workdir="<skill_root>", skills=["newsletter"], prompt="Run Nightly Maintain Mode. Check settings.md for all profiles, verify Hermes cron schedules, auto-repair drift, sweep stale locks...")`
-2. **Terminal / Script Command**:
-   ```bash
-   bash newsletter-workspace/cron/sync-cron.sh --profile <profile-id>
-   ```
-
-**Verification**:
-- Inspect registration: `cronjob(action="list")` or `hermes cron list`.
-- Update `vault/state.json`: record `"cron_installed": true`, `"cron_provider": "hermes"`, `"cron_synced_at": "<ISO8601>"`.
-- Immediately inform the user:
-  > "✅ Automated background scheduling registered in Hermes Cron:
-  > • 🌙 Nightly Batch Writing: `<batch_time>` (researches and writes all editions)
-  > • 📬 Instant Delivery: `<slot_times>` (delivers instantly without writing delay)
-  > • 🛡️ Nightly Maintain Mode: `02:30` (drift verification & auto-repair)"
-
----
-
-### Phase 2 — High-Priority Profile Calibration & Diagnostic Intake
+## The Quick Onboarding Form (Concise Setup Experience)
 
 > [!IMPORTANT]
-> **CRITICAL PRIORITY & NON-NEGOTIABLE GATE**:
-> Gathering rich, precise, high-fidelity details about the user's profession, field of study, native domain fluency, and intellectual curiosity triggers is of **THE HIGHEST IMPORTANCE AND PRIORITY**.
-> Generic user profiles produce generic newsletters. The agent must invest the necessary effort to ask the **right precision questions** and probe deeper to extract the nuances of the user's background, current expertise depth, and intellectual interests.
+> **CONCISE, FORM-BASED INTAKE (NO TEXT WALLS)**:
+> Do not throw long walls of explanatory text at the user. Present a single, beautifully formatted, concise setup form that allows the user to quickly fill in their preferences or reply line-by-line in a few seconds.
 
-#### The 6 Precision Diagnostic Questions (The Right Questions to Ask)
-
-When conducting the profile intake interview, present these focused questions:
+When startup or onboarding is triggered, present this concise setup form:
 
 ```
-To ensure every edition is calibrated to your exact background, explains concepts with the right depth, and surfaces unexpected ideas that spark your curiosity:
+👋 **Welcome to your Personal Learning Newsletter!**
+Let's get your delivery schedule dialed in and calibrate content depth to your background. 
 
-1. 💼 Profession, Current Role & Daily Mechanics:
-   What is your exact job title, profession, or daily work focus? What specific systems, problems, workflows, or methodologies do you engage with every day?
-   (e.g., "Staff Distributed Systems Engineer building high-throughput streaming pipelines", "Cardiologist running clinical drug trials and imaging", "Macroeconomic Quantitative Analyst")
+Please fill out or reply to this quick setup template (you can copy-paste and edit the values, or reply line-by-line):
 
-2. 🎓 Field of Study & Academic/Technical Discipline:
-   What is your primary educational, academic, or technical discipline, and what core sub-specializations did you train in?
-   (e.g., "Computer Science with focus on Compiler Design & Distributed State", "Cardiovascular Physiology & Pharmacokinetics", "Applied Mathematics & Econometrics")
+```yaml
+# ─── 📬 1. Delivery & Schedule Settings ──────────────────────────────
+email: "your.email@example.com"      # Recipient address (or null for local HTML files only)
+schedule: "3_daily"                  # once_daily (08:00) | twice_daily (08:00, 18:00) | 3_daily (08:00, 13:00, 18:00) | custom
+timezone: "Asia/Kuala_Lumpur"        # Your IANA timezone (e.g. America/New_York, Europe/London, Etc/UTC)
+topic_pacing: "dense"                # dense (consecutive slots) | spaced (max 1 part per day)
 
-3. 🧠 Depth of Study & Native Fluency (The "Zero-101s" Invariant):
-   What foundational concepts, jargon, theories, and mental models do you know inside out, where you NEVER want introductory or 101 explanations?
-   (e.g., "Raft consensus, memory barriers, lockless data structures", "Hemodynamics, receptor affinity, ischemia", "Stochastic calculus, Black-Scholes, options greeks")
+# ─── 💼 2. Profession, Field of Study & Depth ────────────────────────
+profession: "..."                    # Job title & daily work focus (e.g., Staff Backend Engineer, Cardiologist)
+field_of_study: "..."                # Academic or technical discipline (e.g., Computer Science, Medicine, Finance)
+expert_concepts: "..."               # Mastered concepts where we NEVER need to explain 101 basics (Zero-101s)
 
-4. 🎯 Target Learning Horizons & Specific Topics:
-   What specific domains, technologies, or subjects do you want this newsletter to teach you, and what specific mechanics do you want demystified?
-   (e.g., "Quantum Computing (qubit coherence and gate algorithms)", "Bio-mechanics and prosthetic engineering", "High-performance Rust async runtimes")
+# ─── 🎯 3. Target Learning & Curiosity Sparks ────────────────────────
+target_topics: "..."                 # Domains or topics you want to learn & demystify next
+spark_interests: "..."               # Adjacent or cross-disciplinary intersections that fascinate you
+analogy_preference: "..."            # Bridge foreign concepts using metaphors from your field? (yes/no / custom)
+```
 
-5. 💡 Interdisciplinary Curiosity & Spark Triggers:
-   What unexpected, adjacent, or cross-disciplinary intersections spark your curiosity or fascination?
-   (e.g., "Applying biological immune systems to network security", "Physics models applied to financial markets", "Biomimicry in aerospace engineering")
-
-6. 🌉 Pedagogical, Analogy & Depth Calibration:
-   Would you like concepts outside your field explained using metaphors and analogies drawn from your primary field of study? What information density and style do you prefer?
-   (e.g., "Explain complex physics or financial concepts using software architecture / distributed systems analogies where possible; prefer high technical density over superficial fluff")
+*(Tip: You can copy-paste the template above with your answers, or reply with your choices in plain text!)*
 ```
 
 ---
 
-#### The Adaptive Probing Protocol (Follow-Up to Get the Best Information)
+### Phase 1b — Automated Settings & Hermes Cron Registration
 
-If the user gives brief, generic, or underspecified answers (e.g., *"I'm a developer and want to learn AI"* or *"I'm in finance"*), the agent **MUST NOT immediately proceed to Phase 3**. The agent must ask smart, targeted follow-up probing questions:
+As soon as the user replies with their delivery settings, the agent **immediately and autonomously**:
+1. Saves validated delivery settings into `settings.md`:
+   - `email`: validated email or `null`
+   - `sends_per_day`: integer (e.g. 3)
+   - `slot_times`: array of `"HH:MM"` (e.g. `["08:00", "13:00", "18:00"]`)
+   - `batch_time`: `"HH:MM"` (default `"03:00"`)
+   - `timezone`: valid IANA identifier
+   - `topic_pacing`: `"dense"` or `"spaced"`
+2. **Registers Hermes Cron Tasks**:
+   - In interactive Hermes session: call `cronjob(action="create", ...)` for batch, send, and maintain jobs.
+   - Or run shell sync: `bash newsletter-workspace/cron/sync-cron.sh --profile <profile-id>`.
+   - Update `vault/state.json`: record `"cron_installed": true`, `"cron_provider": "hermes"`, `"cron_synced_at": "<ISO8601>"`.
 
-- **If profession/role is vague**:
-  - *"To help us tailor the technical depth: What specific tools, languages, or architectural challenges do you work on most frequently? Are you more focused on infrastructure, algorithms, or product architecture?"*
-- **If field of study / depth is vague**:
-  - *"What are 2 or 3 technical concepts in your field that you consider second nature? That will help us set the baseline so we never bore you with basics in those areas."*
-- **If target topics are broad**:
-  - *"For [Domain]: Are you looking to explore it from an applied practitioner lens, a theoretical first-principles perspective, or an architecture/case-study angle?"*
+---
 
-Only when the agent has collected concrete, actionable answers should it proceed to persist the profile in Phase 3.
+### Phase 2 — Adaptive Probing (Only if Details are Underspecified)
+
+If the user left a critical field in the profile section empty or answered with ambiguous 1-word text (e.g. *"developer / want to learn AI"*), ask **one quick, targeted follow-up question**:
+
+- *"To make sure we hit the right technical depth: What specific tools or architecture challenges do you focus on daily, and are you learning AI from a math/research angle or an engineering/systems angle?"*
+
+Once the answers are concrete, immediately proceed to Phase 3 persistence.
+
+---
 
 ---
 

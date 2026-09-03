@@ -283,11 +283,11 @@ Three configuration layers govern the whole pipeline:
 ## Step 0 — STARTUP & CONFIG (first run only, or on /setup / /config)
 
 > [!IMPORTANT]
-> **HIGHEST PRIORITY INITIALIZATION DIRECTIVE**:
-> On first run (or when `vault/user.md` or `vault/user-profile.json` is unpopulated), the initializing agent **MUST prioritize executing `references/startup-procedure.md` with the utmost thoroughness**.
-> The agent has a **VERY HIGH PRIORITY and VERY HIGH IMPORTANCE** to ask the right precision diagnostic questions (Phase 2) and probe deeply rather than accepting generic answers. A high-fidelity user profile is the fundamental prerequisite for generating personalized depth, specialty-tailored content, and intellectual curiosity sparks.
+> **HIGHEST PRIORITY INITIALIZATION DIRECTIVE (CONCISE SETUP FORM)**:
+> On first run (or when `vault/user.md` or `vault/user-profile.json` is unpopulated), the initializing agent **MUST execute `references/startup-procedure.md`**.
+> Instead of throwing massive text walls at the user, present the **concise, structured Quick Onboarding Form** (YAML template). This allows the user to quickly copy-paste/edit or reply line-by-line in seconds while still providing rich, high-fidelity data on their profession, field of study, native fluency, and curiosity sparks.
 
-This initiates the interactive onboarding questionnaire to capture:
+The concise form captures:
 1. **Delivery Settings** (written to `newsletter-workspace/settings.md`):
    - `email`, `sends_per_day`, `slot_times`, `timezone`, `topic_pacing` (`dense` vs `spaced`)
 2. **User Profile, Profession & Field of Study** (written to `vault/user.md`, `vault/user-profile.json` & `vault/learning-profile.md`):
