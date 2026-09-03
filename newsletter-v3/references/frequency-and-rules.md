@@ -26,6 +26,7 @@ timezone: auto
 rolling_window_days: 3
 new_topic_priority: ultimate
 allow_topic_split: true
+topic_pacing: dense        # dense (pack same-topic chunks into consecutive slots) | spaced (max 1 chunk per topic per day, remaining daily slots filled with distinct topics)
 artifact_retention_days: 7  # auto-delete transient artifacts (html, outbox, research, eval, runs) after N days (0 = keep forever)
 html_expiry_days: 7        # legacy alias for artifact_retention_days
 ```
@@ -42,12 +43,13 @@ Field reference:
 | `rolling_window_days` | integer 1–7 | Planner never schedules beyond today + N days |
 | `new_topic_priority` | `ultimate \| queue_order` | `ultimate`: brand-new user topics take the earliest slot and displace planned content |
 | `allow_topic_split` | true/false | Planner may split a topic across slots/days when reshuffling |
+| `topic_pacing` | `dense \| spaced` | `dense`: pack chunks of the same topic into consecutive available slots. `spaced`: max 1 chunk per topic per day; remaining daily slots MUST be filled with distinct topics/gaps (no empty holes) |
 | `artifact_retention_days` | integer ≥ 0 | Delete transient pipeline artifacts (`html/`, `outbox/`, `research/`, `eval/`, `runs/`) N days after generation (0 = keep forever). Vault history (`vault/`) is never deleted |
 | `html_expiry_days` | integer ≥ 0 | Legacy alias for `artifact_retention_days` |
 
 When the user changes `sends_per_day` / `slot_times` / `batch_time` / `delivery_days` / `timezone`,
-mirror the equivalent values into `config.json` (legacy fields) and remind them to run
-`/cron-setup` so the OS-level schedule is regenerated.
+mirror the equivalent values into `config.json` (legacy fields) and **immediately and automatically update the Hermes Cron schedule**.
+The agent never asks the user to manually run `/cron-setup` — the agent executes the update itself.
 
 Read this file whenever the user says any of:
 - "change my frequency", "send it more often", "only send weekly"
@@ -73,13 +75,17 @@ Read this file whenever the user says any of:
 
 ### Updating Frequency
 
-1. Write the new value to `newsletter-workspace/config.json → frequency`.
-2. If `delivery_time` is changing, update that array too.
-3. Write the change to `vault/state.json → last_config_change` with a timestamp.
-4. If cron jobs are installed (`cron/run-newsletter.sh` exists), print a reminder:
-   > "Your cron schedule needs updating. Run `/cron-setup` to reinstall with the new frequency."
-5. Confirm the change to the user in plain language:
-   > "Done — your newsletter will now arrive every morning at 08:00 and every evening at 18:00."
+1. Write the new schedule values to `newsletter-workspace/profiles/<profile>/settings.md` (authoritative) and mirror to `config.json`.
+2. Write the change to `vault/state.json → rule_change_log` with a timestamp.
+3. **Automatically Edit Hermes Cron (MANDATORY)**:
+   The agent MUST immediately update the Hermes scheduled task:
+   - In interactive Hermes session: call `cronjob(action="update", job_id="newsletter:<profile>-send", schedule="<new_cron>")` (and update batch job if `batch_time` changed).
+   - Or run shell runner: `bash newsletter-workspace/cron/sync-cron.sh --profile <profile>`.
+   - Update `vault/state.json` (`cron_synced_at`).
+4. Confirm the change to the user in plain language, including confirmation of the updated scheduler:
+   > "Done — your newsletter schedule and Hermes Cron have been automatically updated:
+   > • 🌙 Batch Writing: every day at `03:00`
+   > • 📬 Deliveries: every day at `08:00` and `18:00` (Etc/UTC)."
 
 ### Timezone
 
@@ -261,6 +267,7 @@ Stored in `newsletter-workspace/config.json → generation_rules`.
 | `forbidden_topics` | array of strings | Planner will never select these topics |
 | `pinned_topics` | array of strings | These always appear in the next plan (for up to 2 runs) |
 | `topic_variety` | `"low"` · `"moderate"` · `"high"` | How much the Planner mixes related vs. distinct topics |
+| `topic_pacing` | `"dense"` · `"spaced"` | Pacing for multi-part topics: consecutive slots vs 1 per day |
 
 ### Updating Generation Rules
 
@@ -272,6 +279,8 @@ Stored in `newsletter-workspace/config.json → generation_rules`.
 | "never cover crypto" | `forbidden_topics: ["cryptocurrency","bitcoin","blockchain"]` |
 | "make sure we cover X next" | `pinned_topics: ["X"]` |
 | "mix up the topics more" | `topic_variety: "high"` |
+| "space out the topic", "one part per day" | `topic_pacing: "spaced"` |
+| "dense packing", "learn it all today", "consecutive parts" | `topic_pacing: "dense"` |
 
 ---
 
@@ -282,10 +291,12 @@ When any rule is changed, follow this sequence:
 1. **Parse** the user's intent → identify which rule block(s) and field(s) to update.
 2. **Read** the current `config.json`.
 3. **Merge** the new values (do not overwrite unrelated fields).
-4. **Write** the updated `config.json` with `updated_at: <ISO8601 timestamp>`.
-5. **Log** the change to `vault/state.json → rule_change_log` (append, include timestamp + summary).
-6. **Confirm** to the user in one short sentence per changed field.
-7. **Ask** whether to re-run the pipeline immediately with the new rules or wait for the next scheduled run.
+4. **Write** the updated `config.json` (and `settings.md` if delivery settings changed) with `updated_at: <ISO8601 timestamp>`.
+5. **Sync Hermes Cron**: If schedule or delivery settings changed (`sends_per_day`, `slot_times`, `batch_time`, `delivery_days`, `timezone`), immediately sync Hermes Cron:
+   - Call `cronjob(action="update")` or run `bash newsletter-workspace/cron/sync-cron.sh --profile <profile>`.
+6. **Log** the change to `vault/state.json → rule_change_log` (append, include timestamp + summary).
+7. **Confirm** to the user in one short sentence per changed field, noting that Hermes Cron was automatically updated.
+8. **Ask** whether to re-run the pipeline immediately with the new rules or wait for the next scheduled run.
 
 ### Conflict Detection
 
@@ -316,6 +327,7 @@ Writing style     : Narrative (hook → story → mistakes → lessons → actio
 Edition length     : 2,000–3,000 words (10+ min read)
 Sections per issue : 2–3
 Topic strategy     : Correlation-first, rolling 3-day window
+Topic pacing       : Dense (consecutive slots)
 Language           : English
 ──────────────────────────────────────────────────────
 Say "/rules update [what you want to change]" to edit any of these.

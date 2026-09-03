@@ -5,7 +5,7 @@ description: >
   3-day rolling content plans, Tavily-powered research, automated cron scheduling,
   and a follow-up Q&A loop that rewires future editions.
   Trigger on /newsletter, /vault, /followup, /plan-newsletter, /send-newsletter,
-  /cron-setup, /rules, /frequency, /install-cron, /update-rules,
+  /cron-setup, /rules, /frequency, /install-cron, /update-rules, /setup, /onboarding,
   or whenever the user mentions newsletter, daily digest, learning email, 3-day plan,
   content calendar, Tavily research, cron schedule, or asks to research and write about
   topics they want to learn. Also trigger when the user asks a follow-up question about
@@ -27,21 +27,25 @@ refined by a directly-editing evaluator, and delivered on a configurable schedul
 SETTINGS (settings.md - authoritative) -----------------------------------------+
   sends_per_day, slot_times, batch_time (INTERMEDIATE AGENT cron),
   delivery_days, timezone (IANA id), rolling_window_days,
-  new_topic_priority, allow_topic_split
+  new_topic_priority, allow_topic_split, topic_pacing (dense | spaced)
+
+NIGHTLY MAINTAIN MODE (Hermes cron fires at 02:30) -------------------------------+
+[0] INTEGRITY CHECK -> Reads settings.md for all profiles, verifies Hermes cron jobs,
+                       detects & auto-repairs schedule drift, cleans stale locks.
 
 INPUT AGENT (foreground, user-triggered) — requirements & planning ONLY ----------+
 [1] INTAKE        -> Collect topics, follow-up Qs, settings changes
 [2] VAULT MANAGER -> Update vault; flag brand-new topics (is_new_topic)
 [3] PLANNER       -> Plan in CONTENT CHUNKS (10-20 min read each); arrange chunks
-                     into slots (ULTIMATE priority for new topics)
-[3.5] PLAN EVAL   -> FRESH-SUBAGENT gate: consolidation bias + 10-20 min reading-time
-                     gate (references/plan-evaluator-agent.md)
+                     into slots contiguously without empty holes (respecting topic_pacing)
+[3.5] PLAN EVAL   -> FRESH-SUBAGENT gate: reading-time + necessity + contiguity (no empty holes)
+                     + topic_pacing gate (references/plan-evaluator-agent.md)
   Output: a GATED content plan. The Input Agent NEVER researches, writes, or sends.
 
 CONTENT PLAN (content_plan.md) - slot grid: N days x sends_per_day slots
   statuses: DELIVERED | READY | SCHEDULED | EMPTY  +  Backlog section
 
-INTERMEDIATE AGENT (background — cron fires ONCE at settings.md batch_time) ------+
+INTERMEDIATE AGENT (background — Hermes cron fires ONCE at settings.md batch_time)+
 [4] RESEARCHERS   -> PARALLEL Tavily deep-dive for ALL scheduled slots of today (concurrent fan-out)
 [5] WRITERS       -> Draft modular content JSON per slot (2,250–3,500 words) + assemble_edition.py
 [6] EVALUATORS    -> Score + JSON patches; Assembler handoff -> final HTML
@@ -49,10 +53,11 @@ INTERMEDIATE AGENT (background — cron fires ONCE at settings.md batch_time) --
   Marks each slot READY in content_plan.md. Produces runs/batch-<date>.json.
   NEVER sends and NEVER touches planned topics/slots.
 
-SENDER AGENT (background — cron fires at EACH settings.md slot_time) --------------+
-[7] SENDER        -> Retrieve the READY edition from outbox, verify eval pass,
-                     send/present, mark DELIVERED, write editions.json record.
-                     Zero production work — no writing delay at send time. ----+
+SENDER AGENT (background — system cron fires at each settings.md slot_time) ------+
+[7] SENDER        -> run-sender.sh auto-resolves the firing slot from settings.md at fire time,
+                     injects the slot label into the Hermes agent prompt. Agent retrieves the
+                     READY edition from outbox, delivers via Hermes Google Workspace, marks
+                     DELIVERED, writes editions.json record. Zero production work. ----+
 ```
 ## Path Resolution & Installation (read first)
 
@@ -156,15 +161,20 @@ step N, the manifest must show steps 1..N-1 complete.
       profiles/registry.json. With multiple profiles and no explicit choice,
       ASK the user before touching state.
    b. All paths below are relative to profiles/<active-profile>/.
-   c. Read settings.md
-   d. Determine role:
+   c. MANDATORY STARTUP GATE (first-time setup):
+      If `vault/user-profile.json` does not exist or has empty fields, the agent
+      MUST halt normal planning and execute `references/startup-procedure.md`
+      immediately to prompt the user for delivery settings and their professional
+      background/expertise before proceeding.
+   d. Read settings.md
+   e. Determine role:
         - fired by the batch_time cron (or user says "run the batch")        -> INTERMEDIATE AGENT
         - fired by a slot_time cron (or user says "send the newsletter")     -> SENDER AGENT
         - otherwise (user-triggered foreground)                              -> INPUT AGENT
-   e. Read vault/state.json and content_plan.md
-   f. Derive: which slots are SCHEDULED for today? Gate verdict in eval/plan-eval.json?
+   f. Read vault/state.json and content_plan.md
+   g. Derive: which slots are SCHEDULED for today? Gate verdict in eval/plan-eval.json?
       Unprocessed inbox items? Unsent READY slots?
-   g. Open/continue the role's run manifest (runs/run-<timestamp>.json, with
+   h. Open/continue the role's run manifest (runs/run-<timestamp>.json, with
       "profile": "<active-profile>").
 ```
 
@@ -172,9 +182,10 @@ step N, the manifest must show steps 1..N-1 complete.
 
 | # | Step | Output (must exist before next step) | Exit condition |
 |---|------|--------------------------------------|----------------|
+| 0 | STARTUP GATE (first run / uninitialized) | `vault/user-profile.json` & `settings.md` populated via `references/startup-procedure.md` | user profile & settings established |
 | 1 | INTAKE (Step 1) | item(s) appended to `vault/inbox.json` | inbox updated |
 | 2 | VAULT MANAGER (Step 2) | `vault/knowledge-map.json`, `learning-profile.md`, `state.json` updated | inbox items `processed: true` |
-| 3 | PLANNER chunking (Step 3) | `plan.json` (with `chunks[]`) + `content_plan.md` rewritten | chunks all >=10 and <=20 min |
+| 3 | PLANNER chunking (Step 3) | `plan.json` (with `chunks[]`) + `content_plan.md` rewritten | chunks all >=10 and <=20 min; contiguously packed |
 | 4 | **PLAN EVAL GATE** (Step 3.5, fresh subagent) | `eval/plan-eval.json` | verdict = pass / pass_with_warnings; <=2 revision cycles, then ask user |
 
 Then: present plan summary to user (interactive) and STOP. **The Input Agent NEVER
@@ -269,11 +280,17 @@ Three configuration layers govern the whole pipeline:
 
 ---
 
-## Step 0 — CONFIG (first run only, or on /config)
+## Step 0 — STARTUP & CONFIG (first run only, or on /setup / /config)
 
-On first run, collect or confirm the **delivery settings** and write them to
-`newsletter-workspace/settings.md` (the authoritative file — see
-`references/frequency-and-rules.md § 0`):
+On first run (or when `vault/user-profile.json` is missing), the agent **must execute `references/startup-procedure.md`**.
+This initiates the interactive onboarding questionnaire to capture:
+1. **Delivery Settings** (written to `newsletter-workspace/settings.md`):
+   - `email`, `sends_per_day`, `slot_times`, `timezone`, `topic_pacing` (`dense` vs `spaced`)
+2. **User Profile & Knowledge Frontier** (written to `vault/user-profile.json` & `vault/learning-profile.md`):
+   - Occupation, active daily focus, core expertise domains, target learning domains, and analogy preferences.
+   - Used by Planner, Researcher, and Writer to **dynamically adapt explanation depth and bridge analogies** (e.g. medical analogies when a doctor learns physics, transitioning to compact technical detail as mastery grows).
+
+Settings schema in `settings.md` (authoritative — see `references/frequency-and-rules.md § 0`):
 
 ```
 sends_per_day: 3
@@ -285,6 +302,7 @@ timezone: IANA location id (e.g. "Asia/Kuala_Lumpur"); "auto" is resolved once b
 rolling_window_days: 3
 new_topic_priority: ultimate
 allow_topic_split: true
+topic_pacing: dense
 artifact_retention_days: 7
 html_expiry_days: 7
 ```
@@ -301,22 +319,20 @@ Plus agent-behavior rules in `newsletter-workspace/config.json`:
 }
 ```
 
-- For **schedule / delivery changes**: edit `settings.md` (per frequency-and-rules.md § 0),
-  then regenerate cron via `/cron-setup`.
+- For **schedule / delivery changes**: edit `settings.md` (per frequency-and-rules.md § 0); the agent automatically updates Hermes Cron (`cronjob(action="update")` or `cron/sync-cron.sh`).
 - For **research / writing / generation rule changes**: read `references/frequency-and-rules.md`.
-- For **cron / automation setup**: read `references/cron-setup.md`.
+- For **cron / automation setup & maintenance**: read `references/cron-setup.md`.
 - For **Tavily configuration**: read `references/tavily-research.md`.
 
-**Frequency runtime note**: Claude.ai does not run background tasks. With the three
-role split, a foreground `/newsletter` invocation acts ONLY as the Input Agent
-(config/intake/vault/plan + gate). Production happens in the INTERMEDIATE AGENT
-batch at `batch_time` (or manually via `/batch`), and delivery in the SENDER AGENT
-at each `slot_time` (or manually via "send the newsletter"). If a due slot is not
-READY at send time, report it and offer to run the batch now.
+**Frequency & Background Execution**: Scheduled tasks run autonomously via the **system crontab**.
+The foreground invocation acts as the Input Agent (onboarding, intake, vault update, and planning).
+Production happens in the INTERMEDIATE AGENT batch at `batch_time` (`newsletter-skill:<profile>-batch`),
+instant delivery happens in the SENDER AGENT at each `slot_time` (`newsletter-skill:<profile>-send`,
+with `run-sender.sh` resolving the exact slot at fire time),
+and integrity verification happens in Nightly Maintain Mode at `02:30` (`newsletter-skill:maintain-all`).
 
-After first-run config is complete, offer to install cron jobs:
-> "Want me to set up an automatic schedule so your newsletter runs without you having to
-> trigger it? I can install a cron job for your system. Just say '/cron-setup'."
+**Automated Cron Registration (Mandatory Step)**:
+During first-time setup, the exact moment the agent gathers the delivery slots and background writing start time (`batch_time`), the agent MUST immediately register the scheduled tasks in Hermes Cron for itself (`newsletter:<profile>-batch`, `newsletter:<profile>-send`, `newsletter:maintain-all`) via the native `cronjob` tool or by running `bash newsletter-workspace/cron/sync-cron.sh --profile <id>`. Do NOT wait for the user to ask for cron setup. Confirm the active schedule directly to the user.
 
 ---
 
@@ -327,6 +343,7 @@ Accept input in any of these forms:
 | Trigger | Meaning |
 |---------|---------|
 | `/newsletter [topic ideas]` | Add new topics to the vault and run the pipeline |
+| `/setup` or `/onboarding` | Run the first-time startup sequence via `references/startup-procedure.md` |
 | `/followup [question]` | Log a follow-up question; re-plan if needed |
 | `/vault` | Show vault summary: what's been learned, gaps, upcoming plan |
 | `/settings [key=value]` | Read/edit `settings.md` (sends_per_day, slot_times, timezone, ...) |
@@ -394,13 +411,18 @@ The Planner reads `vault/knowledge-map.json`, `vault/learning-profile.md`,
    already queued/scheduled gets **ultimate priority** — the earliest available slot.
    Displaced planned content is pushed forward, split across slots, or backlogged
    (within `rolling_window_days`). Never drop delivered content.
-1. **Avoid re-covering** topics already marked `delivered` unless the user asked for a
+1. **Contiguous Slot Packing & Zero Interleaving**: slots must be populated contiguously
+   in chronological order. An earlier slot may never be marked `EMPTY` if a later slot
+   in the window is `SCHEDULED`. Multi-chunk topics follow `settings.md → topic_pacing`:
+   - `dense`: consecutive upcoming slots (Day 1 08:00, 13:00, 18:00).
+   - `spaced`: 1 chunk per day; remaining daily slots MUST be filled with distinct topics/gaps.
+2. **Avoid re-covering** topics already marked `delivered` unless the user asked for a
    deeper dive or a follow-up flagged a gap.
-2. **Inject follow-up slots**: if `vault/followups.json` has urgent items, the next slot
+3. **Inject follow-up slots**: if `vault/followups.json` has urgent items, the next slot
    starts with a "From Your Questions" section (300 words max) before the main content.
-3. **Build correlation bridges**: if a slot's topic correlates with a previous slot's,
+4. **Build correlation bridges**: if a slot's topic correlates with a previous slot's,
    the Planner notes this in `research_brief` so the Researcher and Writer can reference it.
-4. **Output** `newsletter-workspace/plan.json` (slots schema in `references/schemas.md`)
+5. **Output** `newsletter-workspace/plan.json` (slots schema in `references/schemas.md`)
    AND rewrite `newsletter-workspace/content_plan.md` in full (Step F).
 
 Present a plan summary table **plus the reshuffle diff** to the user and wait for
@@ -422,6 +444,8 @@ to the Plan Evaluator — a **fresh subagent** that receives ONLY `plan.json` an
 2. **Necessity test**: no chunk exists that could be merged, densified, or replaced
    (the evaluator's default assumption is fewer, denser chunks).
 3. **Arrangement**: dependency-correct ordering, one chunk per slot.
+4. **Slot Contiguity gate**: zero interleaved empty slots (no empty holes prior to scheduled slots).
+5. **Topic Pacing gate**: verify alignment with `settings.md → topic_pacing` (`dense` vs `spaced`).
 
 Output: `newsletter-workspace/eval/plan-eval.json`. On `verdict: "revise"`, the
 Planner applies `revision_instructions[]` and resubmits (max 2 cycles, then
@@ -442,6 +466,7 @@ One Researcher instance per day in the plan. Enhanced behaviour:
   academic weighting, and search depth.
 - **Reads `vault/knowledge-map.json`** to know what the user already understands — do not
   re-explain concepts marked `mastered`. Reference them briefly ("as you saw in Day 2...").
+- **Reads `vault/user-profile.json` & `vault/learning-profile.md`** to calibrate search depth and find intuitive bridging analogies. When a domain mismatch exists (e.g. medical background learning physics), search for first-principles explanations, intuitive mental models, and real-world analogies.
 - **Addresses follow-ups**: if the day's plan includes a follow-up slot, the Researcher
   runs a targeted Tavily search for the user's specific question before the main topic research.
 
@@ -451,19 +476,22 @@ Output: `newsletter-workspace/research/day-N.json` (includes `tavily_metadata` b
 
 ## Step 5 — WRITER
 
-Read `references/writer-agent.md` for full instructions. **Enhanced from v1.**
+Read `references/writer-agent.md` for full instructions.
 
-New Writer rules:
-
+Executes per scheduled slot during the nightly batch:
+- **Adaptive Scaffolding & Domain Mismatch**: reads `vault/user-profile.json` and `vault/learning-profile.md`.
+  - *High Mismatch / Beginner*: explain from first principles, define domain jargon, and draw bridge analogies from user's known fields.
+  - *Advancing Frontier / Mastered Topics*: skip basic 101 definitions, eliminate introductory hand-holding, and dive straight into mechanisms, trade-offs, and edge cases.
+- **Drafts structured narrative Content JSON**: `content/<date>-slot-<HHMM>.json` (2,250–3,500 words).
+- **Assembles HTML**: compiles via `scripts/assemble_edition.py` into canonical templates with email-safe visual diagrams.
 - **Follow-up section** (when present): placed immediately after the intro, before Section 1.
   Labelled "📬 You Asked:" with the user's question verbatim, then 200–300 words answering it
   at the appropriate depth. Cite the previous edition it relates to.
 - **Continuity line**: the intro must contain one sentence connecting today's content to a
   previous edition if a correlation exists (e.g. "Last time we looked at X — today's topic
   builds directly on that foundation.").
-- All other structure (header, sections, insight box, Try This, footer) unchanged.
 
-Output: `newsletter-workspace/html/day-N.html`.
+Output: `newsletter-workspace/content/<date>-slot-<HHMM>.json` + assembled HTML in `html/`.
 
 ---
 
@@ -567,7 +595,9 @@ newsletter-workspace/
 └── cron/                             ← shared, profile-aware runners
     ├── run-batch.sh                  ← Intermediate Agent batch runner (--profile <id>)
     ├── run-sender.sh                 ← Sender Agent delivery runner (--profile <id>)
-    ├── run-newsletter.sh             ← Unified wrapper (--profile <id> --batch/--send)
+    ├── run-newsletter.sh             ← Unified wrapper (--profile <id> --batch/--send/--summary)
+    ├── cron-summary.py               ← Real-time Cron & Delivery Queue Summary Tool
+    ├── cron-summary.json             ← Real-time summary list (next recipient, previous sent, status, errors)
     ├── run-vault-maintenance.sh      ← Weekly vault cleanup (all profiles or --profile <id>)
     ├── purge-expired.sh              ← Artifact expiry (all profiles or --profile <id>)
     ├── logs/                         ← per-profile logs (<profile-id>.log) + purge.log + vault.log
@@ -585,21 +615,25 @@ newsletter-workspace/
 | `/followup [question]` | Steps 1–2 (vault update) + Steps 3–7 if plan needs changing |
 | `/vault` | Step 2 read-only: display `learning-profile.md` + gap summary |
 | `/plan` | Show `content_plan.md` (planned content moving forward + backlog) |
-| `/settings [key=value]` | Update settings.md (sends_per_day, slot_times, timezone, ...); offer to regenerate cron |
+| `/settings [key=value]` | Update settings.md (sends_per_day, slot_times, timezone, ...); automatically updates Hermes cron |
 | `/config [key=value]` | Step 0 update only |
 | `/rules` or `"show my rules"` | Display current research/writing/generation rules summary |
-| `/rules update [change]` | Update rules per `references/frequency-and-rules.md` |
-| `/frequency [value]` | Update settings.md sends_per_day/slot_times; offer to regenerate cron |
-| `/cron-setup` or `"set up cron"` | Read `references/cron-setup.md` and install scheduler (batch_time job + one job per slot_time) |
+| `/rules update [change]` | Update rules per `references/frequency-and-rules.md`; auto-sync Hermes cron if schedule changed |
+| `/frequency [value]` | Update settings.md sends_per_day/slot_times; automatically updates Hermes cron |
+| `/cron-setup` or `"set up cron"` | Read `references/cron-setup.md` and run `cron/sync-cron.sh` (registers batch, sender, maintain entries in system crontab) |
+| `/cron-summary` or `/status` | Show delivery queue, next recipient, previous sent, and cron status (`python3 cron/cron-summary.py`) |
+| `/maintain` or `"run maintenance"` | Run Nightly Maintain Mode manually: verify schedule alignment, auto-repair drift, sweep locks |
 | `/batch` or `"run the batch"` | Run the INTERMEDIATE AGENT checklist for today's scheduled slots |
-| `/doctor` | Verify referenced files, role invariants, manifests, gate verdicts; report verdict |
+| `/doctor` | Verify files, crontab alignment (`python3 cron/schedule-status.py`), manifests, gate verdicts |
 | `"automate my newsletter"` | Same as `/cron-setup` |
+| `"who is next?"` or `"next send"` | Show upcoming recipient queue from `cron/cron-summary.json` |
 | `"use Tavily"` / `"switch to Tavily"` | Update `research_rules.primary_source`; read `references/tavily-research.md` |
 | `"plan my newsletter"` | Steps 1–3 only |
 | `"research [topic]"` | Step 4 for one topic (Tavily-first) |
 | `"write the newsletter"` | Step 5 (requires existing research/) |
 | `"evaluate my draft"` | Step 6 only |
 | `"send my newsletter"` | Step 7 only |
+
 
 ---
 

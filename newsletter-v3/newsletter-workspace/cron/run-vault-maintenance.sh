@@ -74,10 +74,14 @@ bash "$WS_ROOT/cron/purge-expired.sh" --profile "$PROFILE_ID" >> "$LOG_FILE" 2>&
 # 2. Vault maintenance prompt (profile-bounded)
 MAINTENANCE_PROMPT="Workspace boundary: your current working directory is the ENTIRE workspace for profile '$PROFILE_ID'. Treat it as the filesystem root; NEVER read or write any path outside it (especially other profile directories). Run Vault Manager weekly maintenance: 1) Ingest unprocessed vault/inbox.json items. 2) Recompute vault/knowledge-map.json correlations and knowledge gaps. 3) Rewrite vault/learning-profile.md. 4) Verify vault/state.json counters match vault/editions.json history."
 
-if command -v claude >/dev/null 2>&1; then
+HERMES_BIN="$(which hermes 2>/dev/null || echo "$HOME/.local/bin/hermes")"
+if [ -x "$HERMES_BIN" ] || command -v hermes >/dev/null 2>&1; then
+  HERMES_CMD="${HERMES_BIN:-hermes}"
+  "$HERMES_CMD" -z "$MAINTENANCE_PROMPT" >> "$LOG_FILE" 2>&1 || echo "[$(date -Iseconds)] [$PROFILE_ID] Vault maintenance completed with code $?" >> "$LOG_FILE"
+elif command -v claude >/dev/null 2>&1; then
   claude -p "$MAINTENANCE_PROMPT" >> "$LOG_FILE" 2>&1 || echo "[$(date -Iseconds)] [$PROFILE_ID] Vault maintenance completed with code $?" >> "$LOG_FILE"
 else
-  echo "[$(date -Iseconds)] [$PROFILE_ID] Note: 'claude' CLI not installed in path. Prompt: $MAINTENANCE_PROMPT" >> "$LOG_FILE"
+  echo "[$(date -Iseconds)] [$PROFILE_ID] Note: neither 'hermes' nor 'claude' CLI installed in path. Prompt: $MAINTENANCE_PROMPT" >> "$LOG_FILE"
 fi
 
 echo "[$(date -Iseconds)] [$PROFILE_ID] Vault maintenance finished." >> "$LOG_FILE"

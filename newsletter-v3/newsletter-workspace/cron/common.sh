@@ -66,6 +66,14 @@ init_cron_env() {
   return 0
 }
 
+ACTIVE_LOCK_FILE=""
+
+cleanup_lock() {
+  if [ -n "${ACTIVE_LOCK_FILE:-}" ] && [ -f "$ACTIVE_LOCK_FILE" ]; then
+    rm -f "$ACTIVE_LOCK_FILE"
+  fi
+}
+
 # Centralized lock acquisition with stale lock detection (per-profile locks)
 acquire_lock() {
   local lock_file="$1"
@@ -87,8 +95,9 @@ acquire_lock() {
   fi
 
   if [ "$is_dry_run" = false ]; then
-    touch "$lock_file"
-    trap 'rm -f "$lock_file"' EXIT
+    ACTIVE_LOCK_FILE="$lock_file"
+    touch "$ACTIVE_LOCK_FILE"
+    trap 'cleanup_lock' EXIT
   fi
   return 0
 }
@@ -98,8 +107,14 @@ run_preflight_purge() {
   bash "$WS_ROOT/cron/purge-expired.sh" --profile "$PROFILE_ID" >> "$LOG_FILE" 2>&1 || true
 }
 
+# Refresh cron summary JSON
+update_cron_summary() {
+  python3 "$WS_ROOT/cron/cron-summary.py" --save >/dev/null 2>&1 || true
+}
+
 # Timestamped logging helper
 log_msg() {
   local msg="$1"
   echo "[$(date -Iseconds)] $msg" >> "$LOG_FILE"
 }
+

@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-09-03T09:07:09.075770+00:00",
+  "summary": {
+    "total_profiles": 1,
+    "active_profiles": 1,
+    "disabled_profiles": 0,
+    "next_recipient_profile": "personal",
+    "next_recipient_email": "lamweiheng124@gmail.com",
+    "next_sending_schedule": "2026-09-03T13:00:00+00:00",
+    "time_until_next_send": "3h 52m",
+    "failing_profiles_count": 1
+  },
+  "cron_summary": [
+    {
+      "profile_id": "personal",
+      "user_email": "lamweiheng124@gmail.com",
+      "is_active": true,
+      "next_sending_schedule": "2026-09-03T13:00:00+00:00",
+      "next_sending_slot": "13:00",
+      "time_until_next_send": "3h 52m",
+      "next_batch_schedule": "2026-09-04T03:00:00+00:00",
+      "previous_sent": "Never",
+      "status": "fail",
+      "error_encountered": "Crontab entries missing (run manage_cron.py sync)",
+      "delivery_days": [
+        "mon",
+        "tue",
+        "wed",
+        "thu",
+        "fri",
+        "sat",
+        "sun"
+      ],
+      "slot_times": [
+        "08:00",
+        "13:00",
+        "18:00"
+      ],
+      "timezone": "Etc/UTC",
+      "crontab_status": "missing",
+      "details": {
+        "outbox_ready": false,
+        "latest_edition_id": null,
+        "total_editions_delivered": 0,
+        "last_run_timestamp": "2026-09-03T08:55:49+00:00"
+      }
+    }
+  ]
+}

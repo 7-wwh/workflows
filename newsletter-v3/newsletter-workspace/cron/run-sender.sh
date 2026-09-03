@@ -54,21 +54,56 @@ run_preflight_purge
 CURRENT_TIME="$(date +%H:%M)"
 TODAY="$(date +%Y-%m-%d)"
 
+# --- Resolve nearest delivery slot from settings.md at fire time ---
+# This avoids the Sender Agent having to guess which slot it's running for.
+NEAREST_SLOT="$(python3 - <<'PYEOF'
+import re, datetime, sys
+try:
+    settings = open("settings.md").read()
+    m = re.search(r'slot_times:\s*\[(.+?)\]', settings)
+    if not m:
+        sys.exit(1)
+    raw_slots = [s.strip().strip("\"' ") for s in m.group(1).split(',') if s.strip().strip("\"' ")]
+    now = datetime.datetime.now()
+    now_min = now.hour * 60 + now.minute
+    best = min(raw_slots, key=lambda s: abs(int(s.split(':')[0]) * 60 + int(s.split(':')[1]) - now_min))
+    print(best)
+except Exception as e:
+    import sys; sys.stderr.write(f'slot-resolve error: {e}\n'); sys.exit(1)
+PYEOF
+)" 2>/dev/null || true
+
+if [ -z "$NEAREST_SLOT" ]; then
+  log_msg "WARNING: Could not resolve nearest slot from settings.md — falling back to time-based detection in agent."
+  SLOT_CONTEXT="Match the current time ($CURRENT_TIME) on date $TODAY to the nearest slot_time in settings.md."
+else
+  SLOT_HHMM="${NEAREST_SLOT//:}"
+  log_msg "Resolved delivery slot: $NEAREST_SLOT (HHMM: $SLOT_HHMM) for profile '$PROFILE_ID'."
+  SLOT_CONTEXT="This job was triggered for the $NEAREST_SLOT delivery slot (slot HHMM: $SLOT_HHMM). Use outbox/$TODAY/slot-$SLOT_HHMM-final.html. Do NOT attempt any other slot."
+fi
+
 # Build the sender prompt with GWS integration instructions
-SENDER_PROMPT="Workspace boundary: your current working directory is the ENTIRE workspace for profile '$PROFILE_ID'. Treat it as the filesystem root. NEVER read from or write to any path outside it (especially any other profile directory under profiles/). Read content_plan.md, settings.md, and vault/state.json (all relative to your current directory). Match the current time ($CURRENT_TIME) on date $TODAY to the nearest slot_time in settings.md. Role: SENDER AGENT (Step 7). If the slot is DELIVERED or EMPTY, exit quietly. If the slot is SCHEDULED (batch has not produced it yet), log 'slot not ready' and exit cleanly without writing or blocking. If the slot is READY, retrieve outbox/$TODAY/slot-<HHMM>-final.html, verify matching eval pass status in eval/, send the email edition (or present the file if email is null) with ZERO writing latency, re-stamp HTML expiry, run cron/purge-expired.sh with --profile $PROFILE_ID, flip the slot to DELIVERED in content_plan.md, append the delivery record (including \"profile\": \"$PROFILE_ID\" and \"sent_to\": \"$RECIPIENT\") to vault/editions.json, and update vault/state.json. Zero production work allowed. Pass --auto: skip interactive confirmation.
+SENDER_PROMPT="Workspace boundary: your current working directory is the ENTIRE workspace for profile '$PROFILE_ID'. Treat it as the filesystem root. NEVER read from or write to any path outside it (especially any other profile directory under profiles/). Read content_plan.md, settings.md, and vault/state.json (all relative to your current directory). $SLOT_CONTEXT Role: SENDER AGENT (Step 7). If the slot is DELIVERED or EMPTY, exit quietly. If the slot is SCHEDULED (batch has not produced it yet), log 'slot not ready' and exit cleanly without writing or blocking. If the slot is READY, retrieve outbox/$TODAY/slot-${SLOT_HHMM:-<HHMM>}-final.html, verify matching eval pass status in eval/, send the email edition (or present the file if email is null) with ZERO writing latency, re-stamp HTML expiry, run cron/purge-expired.sh with --profile $PROFILE_ID, flip the slot to DELIVERED in content_plan.md, append the delivery record (including \"profile\": \"$PROFILE_ID\" and \"sent_to\": \"$RECIPIENT\") to vault/editions.json, and update vault/state.json. Zero production work allowed. Pass --auto: skip interactive confirmation.
 
 Delivery mode: the ONLY permitted recipient for this profile is: $RECIPIENT (injected from this profile's settings.md). Never send to any other address. Use the Hermes google-workspace skill at $GWS_API to send the HTML edition. Read the outbox HTML file content, then send via: python3 $GWS_API gmail send --to $RECIPIENT --subject '[Newsletter] <headline from content_plan.md>' --body '<html content>' --html. If the GWS script returns an error, fall back to presenting the file to the user. Parse the JSON response for status and id."
 
 if [ "$DRY_RUN" = true ]; then
   log_msg "[DRY-RUN] Would run Sender Agent delivery for profile '$PROFILE_ID' to $RECIPIENT with prompt: $SENDER_PROMPT"
+  update_cron_summary
   echo "Dry run completed successfully."
   exit 0
 fi
 
-if command -v claude >/dev/null 2>&1; then
+HERMES_BIN="$(which hermes 2>/dev/null || echo "$HOME/.local/bin/hermes")"
+if [ -x "$HERMES_BIN" ] || command -v hermes >/dev/null 2>&1; then
+  HERMES_CMD="${HERMES_BIN:-hermes}"
+  "$HERMES_CMD" -z "$SENDER_PROMPT" >> "$LOG_FILE" 2>&1 || log_msg "Sender run finished with exit code $?"
+elif command -v claude >/dev/null 2>&1; then
   claude -p "$SENDER_PROMPT" >> "$LOG_FILE" 2>&1 || log_msg "Sender run finished with exit code $?"
 else
-  log_msg "Note: 'claude' CLI not in PATH. Sender prompt ready: $SENDER_PROMPT"
+  log_msg "Note: neither 'hermes' nor 'claude' CLI in PATH. Sender prompt ready: $SENDER_PROMPT"
 fi
 
 log_msg "Sender Agent delivery run finished for profile '$PROFILE_ID'."
+update_cron_summary
+

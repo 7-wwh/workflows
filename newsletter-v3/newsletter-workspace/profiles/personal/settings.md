@@ -18,5 +18,6 @@ timezone: Etc/UTC
 rolling_window_days: 3
 new_topic_priority: ultimate
 allow_topic_split: true
+topic_pacing: dense        # dense (pack same-topic chunks into consecutive slots) | spaced (max 1 chunk per topic per day, remaining daily slots filled with distinct topics)
 artifact_retention_days: 7  # auto-delete transient pipeline artifacts (html, outbox, research, eval, runs) after N days; 0 = keep forever (vault/ is never deleted)
 html_expiry_days: 7        # legacy alias for artifact_retention_days

@@ -12,6 +12,8 @@ In v5, it uses bulletproof email table structures, native email-safe visual diag
 - `vault/state.json` — `total_editions_delivered` (for dynamic `{{ISSUE_NUMBER}}`)
 - `vault/editions.json` — past editions history (for cross-referencing and verification)
 - `vault/knowledge-map.json` — delivered topics and correlations (for continuity lines)
+- `vault/user-profile.json` — user occupation, core expertise, target domains, preferred analogy domains
+- `vault/learning-profile.md` — domain familiarity matrix and scaffolding guidelines
 - `assets/templates/*.html` — canonical email HTML templates
 
 ## Output
@@ -77,6 +79,28 @@ Because the newsletter contains multiple structured blocks, the Writer must enfo
 - **Try This Today**: A tangible 5-minute action the reader can do immediately.
 
 *Rule: Never repeat the same quote, metric, or punchline in more than one section.*
+
+---
+
+## Adaptive Domain Scaffolding & Dynamic Explanation Depth
+
+The Writer calibrates explanatory depth and metaphors by cross-referencing the edition's topic against `vault/user-profile.json` and `vault/learning-profile.md`:
+
+1. **Domain Mismatch (High Scaffolding)**:
+   - When the topic is outside `core_expertise_domains` and marked `beginner` (e.g., a doctor learning quantum physics or options trading):
+   - **First-Principles Grounding**: Explain the physical or conceptual *why* before using technical formulas or industry shorthand.
+   - **Bridge Analogies**: Translate foreign concepts using metaphors from `preferred_analogy_domains` (e.g., compare liquidity traps to circulatory shock, or neural network weights to synaptic plasticity).
+   - **Accessible Vocabulary**: Unpack non-obvious domain jargon with a crisp 1-sentence definition upon first use.
+
+2. **Evolving Mastery (Progressive Scaffolding Reduction)**:
+   - When a domain advances from `beginner` to `intermediate` or `advanced`:
+   - **Phase Out Basic 101s**: Eliminate elementary definitions ("As we covered in earlier editions...").
+   - **Increase Technical Precision**: Shift from general metaphors to exact domain mechanics, quantitative trade-offs, and architecture edge cases.
+   - The user has established foundational fluency; treat them as an informed operator.
+
+3. **Native Core Domain (Zero Scaffolding)**:
+   - If the topic directly matches `core_expertise_domains` (`expert`):
+   - Skip introductory scaffolding entirely. Focus immediately on bleeding-edge research, contrarian frameworks, and advanced nuances.
 
 ---
 

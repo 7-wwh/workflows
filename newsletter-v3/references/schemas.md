@@ -126,6 +126,16 @@ ultimate-priority new-topic insertion). `backlog` mirrors the Backlog section of
       "notes": "string"
     }
   ],
+  "contiguity_check": {
+    "passed": true,
+    "interleaved_empty_slots": [],    // list of empty slots that occur before scheduled slots
+    "notes": "string"
+  },
+  "pacing_check": {
+    "mode": "dense | spaced",
+    "passed": true,
+    "notes": "string"
+  },
   "revision_instructions": [
     "string"
   ],
@@ -308,6 +318,60 @@ See `intake.json` above — same schema, same file (inbox IS the append-only int
 
 ---
 
+## vault/user-profile.json (User Background & Domain Mastery)
+
+Stored at `newsletter-workspace/vault/user-profile.json`. Initialized during the startup procedure (`references/startup-procedure.md`).
+
+```json
+{
+  "name": "string",
+  "occupation": "string",
+  "daily_focus": "string",
+  "core_expertise_domains": ["string"],
+  "target_learning_domains": ["string"],
+  "domain_mastery": {
+    "domain_slug": "beginner | intermediate | advanced | expert"
+  },
+  "preferred_analogy_domains": ["string"],
+  "scaffolding_preference": "adaptive | foundational | technical",
+  "created_at": "ISO8601",
+  "updated_at": "ISO8601"
+}
+```
+
+---
+
+## vault/learning-profile.md (Human-Readable Knowledge Frontier)
+
+Rewritten by Vault Manager on every run:
+
+```markdown
+# Learning Profile & Background
+Last updated: [ISO8601]
+
+## User Background & Core Expertise
+- **Role / Occupation**: [string]
+- **Active Focus**: [string]
+- **Core Expertise**: [domains marked expert/advanced]
+
+## Domain Scaffolding & Analogy Rules
+- **Domain Mismatch Rules**: [e.g. For physics, use medical/biological bridge analogies and first principles]
+- **Native Domains**: [skip elementary definitions]
+
+## Domain Familiarity Matrix
+| Domain | Familiarity Tier | Delivered Editions | Mastery Notes |
+|---|---|---|---|
+| Physics | Beginner -> Intermediate | 3 | Understood basic thermodynamics; ready for wave mechanics |
+
+## What You've Covered
+- [Delivered topics, grouped by theme]
+
+## Knowledge Gaps to Address
+- [Gaps from knowledge-map.json]
+```
+
+---
+
 ## vault/knowledge-map.json
 
 ```json
@@ -448,3 +512,48 @@ note). Read-only triggers do not open a manifest.
 `newsletter-workspace/outbox/YYYY-MM-DD/slot-HHMM-final.html` — one finished,
 eval-passed (or warning-banner-flagged) edition per scheduled slot, written entirely
 during the `batch_time` run. The Sender only ever reads from here; it never produces.
+
+---
+
+## cron/cron-summary.json (v5 — Real-time Delivery Queue & Cron Status Summary)
+
+```json
+{
+  "generated_at": "ISO8601",
+  "summary": {
+    "total_profiles": 1,
+    "active_profiles": 1,
+    "disabled_profiles": 0,
+    "next_recipient_profile": "string | null",
+    "next_recipient_email": "string | null",
+    "next_sending_schedule": "ISO8601 | null",
+    "time_until_next_send": "string | null",
+    "failing_profiles_count": 0
+  },
+  "cron_summary": [
+    {
+      "profile_id": "string",
+      "user_email": "string",
+      "is_active": true,
+      "next_sending_schedule": "ISO8601 | N/A (disabled)",
+      "next_sending_slot": "HH:MM",
+      "time_until_next_send": "string",
+      "next_batch_schedule": "ISO8601 | N/A (disabled)",
+      "previous_sent": "ISO8601 | Never",
+      "status": "success | fail | ready | scheduled | paused",
+      "error_encountered": "N/A | error message string",
+      "delivery_days": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+      "slot_times": ["08:00", "13:00", "18:00"],
+      "timezone": "string",
+      "crontab_status": "in_sync | drift | missing",
+      "details": {
+        "outbox_ready": false,
+        "latest_edition_id": "string | null",
+        "total_editions_delivered": 0,
+        "last_run_timestamp": "ISO8601 | null"
+      }
+    }
+  ]
+}
+```
+

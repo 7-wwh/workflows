@@ -1,0 +1,19 @@
+This is a list of items that i wish to work on in the future. 
+- able to create mutiple profiles 
+- integrate profiles detail to supabase for agent to fetch 
+- run cron job for the agent to check if there's pending newsletter to send 
+
+- stable release for public 
+
+- if user >20 
+    - create login dashbord for settings control 
+    - create paywall system (user >50)
+
+- add special modes 
+    - spaced repetition mode will help user refresh memory based on learned topics 
+
+
+
+Things to add 
+- better cron scheduling 
+- 

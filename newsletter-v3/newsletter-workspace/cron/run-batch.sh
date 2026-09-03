@@ -31,14 +31,21 @@ BATCH_PROMPT="Workspace boundary: your current working directory is the ENTIRE w
 
 if [ "$DRY_RUN" = true ]; then
   log_msg "[DRY-RUN] Would run Intermediate Agent batch for profile '$PROFILE_ID' with prompt: $BATCH_PROMPT"
+  update_cron_summary
   echo "Dry run completed successfully."
   exit 0
 fi
 
-if command -v claude >/dev/null 2>&1; then
+HERMES_BIN="$(which hermes 2>/dev/null || echo "$HOME/.local/bin/hermes")"
+if [ -x "$HERMES_BIN" ] || command -v hermes >/dev/null 2>&1; then
+  HERMES_CMD="${HERMES_BIN:-hermes}"
+  "$HERMES_CMD" -z "$BATCH_PROMPT" >> "$LOG_FILE" 2>&1 || log_msg "Intermediate batch finished with exit code $?"
+elif command -v claude >/dev/null 2>&1; then
   claude -p "$BATCH_PROMPT" >> "$LOG_FILE" 2>&1 || log_msg "Intermediate batch finished with exit code $?"
 else
-  log_msg "Note: 'claude' CLI not in PATH. Batch prompt ready: $BATCH_PROMPT"
+  log_msg "Note: neither 'hermes' nor 'claude' CLI in PATH. Batch prompt ready: $BATCH_PROMPT"
 fi
 
 log_msg "Intermediate Agent nightly batch finished for profile '$PROFILE_ID'."
+update_cron_summary
+

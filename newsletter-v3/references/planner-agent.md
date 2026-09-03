@@ -11,7 +11,7 @@ vault state: what they've covered, what confused them, and what topics correlate
 - `vault/followups.json` — prioritised follow-up questions
 - `vault/learning-profile.md` — user's knowledge frontier
 - `newsletter-workspace/settings.md` — **authoritative settings**: sends_per_day,
-  slot_times, delivery_days, rolling_window_days, new_topic_priority, allow_topic_split
+  slot_times, delivery_days, rolling_window_days, new_topic_priority, allow_topic_split, topic_pacing
 - `newsletter-workspace/content_plan.md` — the current forward-looking plan (may be empty)
 - `newsletter-workspace/config.json` — depth level (settings.md wins on any conflict)
 
@@ -36,8 +36,16 @@ self-contained, individually deliverable units of learning. For each chunk recor
 Chunk boundaries must follow natural narrative or conceptual boundaries — never
 split mechanically just because a topic is large.
 
-**Phase 2 — Slot arrangement.** Only after chunking, arrange chunks into the slot
-grid. One chunk per slot; leave slots EMPTY rather than overfilling.
+**Phase 2 — Slot arrangement & Contiguous Packing.** Only after chunking, arrange chunks into the slot
+grid. One chunk per slot.
+
+**Contiguous Slot Packing & Zero-Interleaving Invariant (MANDATORY)**:
+- Slots must be populated in strict chronological, contiguous order: `Day 1 [Slot 0] → Day 1 [Slot 1] → ... → Day N [Slot M]`.
+- **NEVER leave internal `EMPTY` slots between scheduled slots.** An earlier slot may NEVER be marked `EMPTY` if any later slot in the rolling window is `SCHEDULED`.
+- Respect `settings.md → topic_pacing`:
+  - **`dense`** (default): Chunks of the same multi-part topic are assigned to **consecutive delivery slots** (e.g. Part 1 at Day 1 08:00, Part 2 at Day 1 13:00, Part 3 at Day 1 18:00).
+  - **`spaced`**: At most 1 chunk per topic per day (e.g. Part 1 at Day 1 08:00, Part 2 at Day 2 08:00, Part 3 at Day 3 08:00). When `spaced` is active, the intermediate daily slots (e.g. 13:00 and 18:00) **MUST NOT** be left empty; they must be filled with distinct topics from the priority hierarchy (gaps, queued topics, or correlation branches).
+- Trailing slots at the tail end of the rolling window may remain `EMPTY` only if all queues, gaps, and correlation candidates are completely exhausted, but active slots must never be separated by empty gaps.
 
 **Chunk constraints (hard):**
 - Every chunk: **10–20 minutes reading time** (~2,250–4,500 words).
@@ -93,8 +101,9 @@ When `settings.md → new_topic_priority == "ultimate"` (the default):
      original objectives intact. Backlogged topics are re-promoted by Step C as slots free up.
 3. A topic that was already **delivered** is never moved or split; only
    `scheduled`/`planned` items are candidates for displacement.
-4. If the new topic is large (3+ objectives), it may itself be split across slots —
-   prefer one slot per day-part so no single edition exceeds length limits.
+4. Multi-chunk topic distribution:
+   - When `settings.md → topic_pacing == "dense"` (default): assign all chunks of the topic to **consecutive upcoming delivery slots** across `slot_times` (e.g., today 08:00, 13:00, 18:00). Do not space them across separate calendar days if slots are available today.
+   - When `settings.md → topic_pacing == "spaced"`: assign at most 1 chunk per calendar day, and immediately fill the remaining daily delivery slots with distinct topics, gaps, or correlation bridges. Under no circumstances may intermediate daily slots be left `EMPTY`.
 
 ### Step C — Fill remaining slots
 
@@ -112,12 +121,20 @@ delivered topic, note the bridge in `research_brief`.
 
 Read `sends_per_day`, `slot_times`, `delivery_days`, and `rolling_window_days` from
 `settings.md`. The plan is a **slot grid**: `delivery_days ∩ [today, today + rolling_window_days]`
-× `slot_times` (e.g. 3 sends/day × 3 days = 9 slots). Each slot gets:
-- One main topic-part (or gap resolution) — or stays EMPTY (never overfill)
-- One optional follow-up slot (if `priority: "soon"` items exist)
-- 2–3 learning objectives calibrated to `depth` in `config.json`
-- A designated `template_type` assigned by matching the topic nature to the available templates in `assets/templates/`. The Planner should read the `TEMPLATE_METADATA` comment block at the top of each template file to understand what it's best for.
-  - If none of the templates fit distinctly, or if the topic demands an entirely different structure, assign `"custom"`.
+× `slot_times` (e.g. 3 sends/day × 3 days = 9 slots).
+
+**Grid distribution rules**:
+- Populate slots contiguously without gaps. If the primary topic does not exhaust the grid, draw from:
+  1. Priority follow-up slots (`vault/followups.json`)
+  2. Urgent/soon knowledge-map gaps (`vault/knowledge-map.json → gaps[]`)
+  3. Queued topics & Backlog (`vault/knowledge-map.json → topics[]`)
+  4. Correlated companion topics or case studies from `learning-profile.md`
+- Each slot gets:
+  - One main topic-part (or gap resolution)
+  - One optional follow-up slot (if `priority: "soon"` items exist)
+  - 2–3 learning objectives calibrated to `depth` in `config.json`
+  - A designated `template_type` assigned by matching the topic nature to available templates in `assets/templates/` (or `"custom"`)
+- Trailing slots at the end of the rolling window may stay `EMPTY` only if no other topics, gaps, or correlations exist. Interleaved empty slots are strictly forbidden.
 
 Depth calibration (unchanged from v1):
 - **Beginner**: focus on what/why; avoid how
@@ -149,18 +166,21 @@ Last updated: [ISO8601]
 
 ## Tomorrow — 2026-09-02 (3 slots)
 - [08:00] SCHEDULED | Pydantic Day 2 (Part 2): Settings & pydantic-core
-- [13:00] SCHEDULED | Topic X ...
-- [18:00] EMPTY
+- [13:00] SCHEDULED | Topic X: Architecture & Data Flow
+- [18:00] SCHEDULED | Topic X: Error Handling Patterns
 
 ## Day 3 — 2026-09-03 (3 slots)
-...
+- [08:00] SCHEDULED | Topic Y ...
+- [13:00] SCHEDULED | Topic Y ...
+- [18:00] EMPTY     | (Trailing empty slot: backlog exhausted)
 
 ## Backlog (unscheduled)
-- Topic Y — demoted 2026-09-01, original objectives intact
+- Topic Z — demoted 2026-09-01, original objectives intact
 ```
 
 Statuses: `DELIVERED | SCHEDULED | EMPTY` for slots; Backlog lists demoted topics.
 Mark every moved slot with `(moved_from: ...)` so the user can audit the reshuffle.
+Slots must be contiguously populated; trailing EMPTY slots are only valid at the window's end.
 
 ## Plan Confirmation
 

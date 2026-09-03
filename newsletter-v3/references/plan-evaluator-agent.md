@@ -17,6 +17,7 @@ must earn its independence.
 ## Inputs
 
 - `newsletter-workspace/plan.json` — the `chunks[]` block and slot arrangement
+- `newsletter-workspace/settings.md` — (read-only) `sends_per_day`, `slot_times`, `topic_pacing`
 - This document
 - (Optional, read-only) `vault/knowledge-map.json` gaps and backlog, for the replace check
 
@@ -63,11 +64,42 @@ An unnecessary chunk MUST be either:
 - Standalone-readability: each chunk should make sense if read alone; where a
   chunk depends on a prior chunk, the plan should note the dependency.
 
+### 4. Slot Contiguity & Zero-Interleaving Gate (hard requirement)
+
+The slot grid must be packed **contiguously in chronological order**:
+
+- **No Interleaved Empty Slots**: If Slot $T$ is marked `EMPTY` and any later slot
+  $T+k$ ($k \ge 1$) within the rolling window is marked `SCHEDULED`, this is an
+  immediate **FAIL**. The Planner is not permitted to scatter content with empty holes.
+- **Trailing Empty Slots Only**: `EMPTY` slots are only permitted at the *tail end* of the
+  rolling window (e.g. Day 3 18:00) when all topic chunks, gaps, backlog items, and
+  correlation recommendations have been completely exhausted.
+- Check recorded in `eval/plan-eval.json → contiguity_check`:
+  `{ "passed": boolean, "interleaved_empty_slots": ["<date> <time>"], "notes": "..." }`.
+
+### 5. Topic Pacing Gate (hard requirement)
+
+Verify alignment with `settings.md → topic_pacing`:
+
+- If `topic_pacing == "dense"`: Chunks of the same multi-part topic must occupy
+  **consecutive delivery slots** (e.g., Day 1 08:00, 13:00, 18:00). If the Planner
+  spaced same-topic chunks across separate calendar days while leaving today's
+  remaining slots empty, flag as **FAIL**.
+- If `topic_pacing == "spaced"`: At most 1 chunk per topic per day. The remaining daily
+  delivery slots (e.g. 13:00 and 18:00) **MUST be scheduled with distinct topics**
+  (from queued topics, gaps, or correlation branches). If intermediate slots are
+  left `EMPTY`, flag as **FAIL**.
+- Check recorded in `eval/plan-eval.json → pacing_check`:
+  `{ "mode": "dense | spaced", "passed": boolean, "notes": "..." }`.
+
 ## Verdict & Revision Loop
 
-- `verdict: "pass"` — all chunks ≥10 min, ≤20 min, and no unnecessary chunks.
-- `verdict: "revise"` — the output includes `revision_instructions[]`: concrete,
-  per-chunk actions ("merge chunk-3 into chunk-2, add its objective X").
+- `verdict: "pass"` — all chunks ≥10 min, ≤20 min, no unnecessary chunks, contiguity check passed, and topic pacing check passed.
+- `verdict: "revise"` — any check failed. The output includes `revision_instructions[]`:
+  concrete, actionable instructions:
+  - Reading time / necessity: `"merge chunk-3 into chunk-2, add its objective X"`
+  - Contiguity failure: `"eliminate empty interleaved slots [Day 1 13:00, Day 1 18:00]: compress chunks into consecutive delivery slots or schedule distinct topics to populate active slots contiguously."`
+  - Pacing failure: `"topic_pacing is dense: pack chunks 1, 2, and 3 of 'Stock Exit Strategies' into consecutive slots today (08:00, 13:00, 18:00)."`
 - The Planner applies the instructions and resubmits. **Maximum 2 revision cycles.**
   After cycle 2, set `verdict: "pass_with_warnings"` and record unresolved issues
   in `warnings[]` — do not block the pipeline.
