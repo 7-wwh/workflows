@@ -88,7 +88,7 @@ newsletter-workspace/
 │   └── <profile-id>/               ← 100% SELF-CONTAINED workspace per recipient
 │       ├── settings.md             ← email, slot_times, batch_time, timezone, rules
 │       ├── config.json  content_plan.md  plan.json
-│       ├── vault/                  ← state.json, inbox.json, followups.json,
+│       ├── vault/                  ← state.json, inbox.json, followups.json, user.md,
 │       │                              knowledge-map.json, learning-profile.md, editions.json
 │       ├── outbox/  research/  eval/  html/  content/  runs/
 ├── shared/                         ← read-only shared layer (scripts/assemble_edition.py)
@@ -162,10 +162,10 @@ step N, the manifest must show steps 1..N-1 complete.
       ASK the user before touching state.
    b. All paths below are relative to profiles/<active-profile>/.
    c. MANDATORY STARTUP GATE (first-time setup):
-      If `vault/user-profile.json` does not exist or has empty fields, the agent
+      If `vault/user.md` or `vault/user-profile.json` does not exist or has empty fields, the agent
       MUST halt normal planning and execute `references/startup-procedure.md`
-      immediately to prompt the user for delivery settings and their professional
-      background/expertise before proceeding.
+      immediately to prompt the user for delivery settings, occupation, field of study,
+      and domain background before proceeding.
    d. Read settings.md
    e. Determine role:
         - fired by the batch_time cron (or user says "run the batch")        -> INTERMEDIATE AGENT
@@ -182,9 +182,9 @@ step N, the manifest must show steps 1..N-1 complete.
 
 | # | Step | Output (must exist before next step) | Exit condition |
 |---|------|--------------------------------------|----------------|
-| 0 | STARTUP GATE (first run / uninitialized) | `vault/user-profile.json` & `settings.md` populated via `references/startup-procedure.md` | user profile & settings established |
+| 0 | STARTUP GATE (first run / uninitialized) | `vault/user.md`, `vault/user-profile.json` & `settings.md` populated via `references/startup-procedure.md` | user profile & settings established |
 | 1 | INTAKE (Step 1) | item(s) appended to `vault/inbox.json` | inbox updated |
-| 2 | VAULT MANAGER (Step 2) | `vault/knowledge-map.json`, `learning-profile.md`, `state.json` updated | inbox items `processed: true` |
+| 2 | VAULT MANAGER (Step 2) | `vault/user.md`, `vault/knowledge-map.json`, `learning-profile.md`, `state.json` updated | inbox items `processed: true` |
 | 3 | PLANNER chunking (Step 3) | `plan.json` (with `chunks[]`) + `content_plan.md` rewritten | chunks all >=10 and <=20 min; contiguously packed |
 | 4 | **PLAN EVAL GATE** (Step 3.5, fresh subagent) | `eval/plan-eval.json` | verdict = pass / pass_with_warnings; <=2 revision cycles, then ask user |
 
@@ -282,13 +282,17 @@ Three configuration layers govern the whole pipeline:
 
 ## Step 0 — STARTUP & CONFIG (first run only, or on /setup / /config)
 
-On first run (or when `vault/user-profile.json` is missing), the agent **must execute `references/startup-procedure.md`**.
+> [!IMPORTANT]
+> **HIGHEST PRIORITY INITIALIZATION DIRECTIVE**:
+> On first run (or when `vault/user.md` or `vault/user-profile.json` is unpopulated), the initializing agent **MUST prioritize executing `references/startup-procedure.md` with the utmost thoroughness**.
+> The agent has a **VERY HIGH PRIORITY and VERY HIGH IMPORTANCE** to ask the right precision diagnostic questions (Phase 2) and probe deeply rather than accepting generic answers. A high-fidelity user profile is the fundamental prerequisite for generating personalized depth, specialty-tailored content, and intellectual curiosity sparks.
+
 This initiates the interactive onboarding questionnaire to capture:
 1. **Delivery Settings** (written to `newsletter-workspace/settings.md`):
    - `email`, `sends_per_day`, `slot_times`, `timezone`, `topic_pacing` (`dense` vs `spaced`)
-2. **User Profile & Knowledge Frontier** (written to `vault/user-profile.json` & `vault/learning-profile.md`):
-   - Occupation, active daily focus, core expertise domains, target learning domains, and analogy preferences.
-   - Used by Planner, Researcher, and Writer to **dynamically adapt explanation depth and bridge analogies** (e.g. medical analogies when a doctor learns physics, transitioning to compact technical detail as mastery grows).
+2. **User Profile, Profession & Field of Study** (written to `vault/user.md`, `vault/user-profile.json` & `vault/learning-profile.md`):
+   - Exact occupation, primary field of study, daily workflow mechanics, core specialty domains, native fluency ("zero 101s"), target learning horizons, curiosity spark triggers, and analogy preferences.
+   - Used by Planner, Researcher, and Writer to **dynamically adapt explanation depth and bridge analogies** (e.g. medical analogies when a doctor learns physics, transitioning to compact technical detail as mastery grows) and to **spark user interest** with novel interdisciplinary topics connecting to their profession.
 
 Settings schema in `settings.md` (authoritative — see `references/frequency-and-rules.md § 0`):
 
@@ -466,7 +470,7 @@ One Researcher instance per day in the plan. Enhanced behaviour:
   academic weighting, and search depth.
 - **Reads `vault/knowledge-map.json`** to know what the user already understands — do not
   re-explain concepts marked `mastered`. Reference them briefly ("as you saw in Day 2...").
-- **Reads `vault/user-profile.json` & `vault/learning-profile.md`** to calibrate search depth and find intuitive bridging analogies. When a domain mismatch exists (e.g. medical background learning physics), search for first-principles explanations, intuitive mental models, and real-world analogies.
+- **Reads `vault/user.md`, `vault/user-profile.json` & `vault/learning-profile.md`** to calibrate search depth and find intuitive bridging analogies. When a domain mismatch exists (e.g. medical background learning physics), search for first-principles explanations, intuitive mental models, and real-world analogies.
 - **Addresses follow-ups**: if the day's plan includes a follow-up slot, the Researcher
   runs a targeted Tavily search for the user's specific question before the main topic research.
 
@@ -479,7 +483,7 @@ Output: `newsletter-workspace/research/day-N.json` (includes `tavily_metadata` b
 Read `references/writer-agent.md` for full instructions.
 
 Executes per scheduled slot during the nightly batch:
-- **Adaptive Scaffolding & Domain Mismatch**: reads `vault/user-profile.json` and `vault/learning-profile.md`.
+- **Adaptive Scaffolding & Domain Mismatch**: reads `vault/user.md`, `vault/user-profile.json`, and `vault/learning-profile.md`.
   - *High Mismatch / Beginner*: explain from first principles, define domain jargon, and draw bridge analogies from user's known fields.
   - *Advancing Frontier / Mastered Topics*: skip basic 101 definitions, eliminate introductory hand-holding, and dive straight into mechanisms, trade-offs, and edge cases.
 - **Drafts structured narrative Content JSON**: `content/<date>-slot-<HHMM>.json` (2,250–3,500 words).

@@ -318,7 +318,62 @@ See `intake.json` above — same schema, same file (inbox IS the append-only int
 
 ---
 
-## vault/user-profile.json (User Background & Domain Mastery)
+## vault/user.md (User Professional Profile, Field of Study & Curiosity Matrix)
+
+Stored at `newsletter-workspace/vault/user.md` (or `profiles/<profile-id>/vault/user.md`). Created during initial startup onboarding and dynamically updated on recurring runs by the Vault Manager.
+
+This document serves as the authoritative, rich human-readable profile of the user's professional background, academic discipline / field of study, domain depth, learning objectives, and AI-identified curiosity sparks.
+
+```markdown
+# User Profile & Professional Specialization
+
+Last updated: [ISO8601 or "Initial Setup"]
+
+## 1. Professional Identity & Background
+- **Name / Identifier**: [User Name or Handle]
+- **Primary Occupation / Profession**: [e.g. Cardiologist & Clinical Researcher, Senior Software Architect]
+- **Field of Study / Discipline**: [e.g. Medicine & Cardiovascular Physiology, Distributed Systems]
+- **Current Role & Daily Focus**: [e.g. Clinical trials, cardiology diagnostics, patient data analytics]
+- **Experience Level / Seniority**: [e.g. Senior Practitioner / 10+ years / PhD]
+
+## 2. Core Specialty & Domain Mastery
+- **Primary Field of Study**: [Field name] (Mastery: Expert)
+- **Sub-Disciplines & Specializations**:
+  - [Sub-discipline 1]: [Details / depth]
+  - [Sub-discipline 2]: [Details / depth]
+- **Native Concepts & Terminology** (Zero 101 explanations needed — assume high fluency):
+  - [Concept 1], [Concept 2], [Concept 3]
+
+## 3. Knowledge Depth & Familiarity Matrix
+| Domain / Field | Category | Current Depth Tier | Evolution & Notes |
+|---|---|---|---|
+| [Core Field] | Native Specialty | Expert | Skip foundational basics; high technical rigor |
+| [Target Field 1] | Active Learning | Beginner -> Intermediate | Transitioning to mechanism trade-offs |
+| [Target Field 2] | Curiosity Spark | Beginner | Needs intuitive first-principles scaffolding |
+
+## 4. Learning Interests & Curiosity Spark Engine
+### Active Learning Objectives
+- [Topic 1]: [Specific learning goal]
+- [Topic 2]: [Specific learning goal]
+
+### Curiosity Sparks (Cross-Disciplinary Discovery)
+> Emerging, serendipitous topics identified on recurring runs connecting the user's field of study to adjacent or novel domains to spark new intellectual curiosity:
+- **[Spark Concept 1]**: [Why it connects to their profession / field of study and why it sparks interest]
+- **[Spark Concept 2]**: [Cross-disciplinary bridge or cutting-edge frontier topic]
+
+## 5. Pedagogical & Content Calibration Rules
+- **Preferred Analogy Domains**: [e.g. Human physiology, software architecture, financial markets]
+- **Scaffolding Strategy**: [e.g. Heavy first-principles scaffolding for non-native domains using analogies; zero scaffolding for native field]
+- **Tone & Narrative Style**: [e.g. Friendly-professional, high information density, story-first]
+- **Anti-Repetition & Depth Progression**: [Automatically elevate depth as editions are completed]
+
+## 6. Profile Evolution & Discovery History
+- [ISO8601]: Initial profile created during onboarding.
+```
+
+---
+
+## vault/user-profile.json (Machine-Readable User Background & Domain Mastery)
 
 Stored at `newsletter-workspace/vault/user-profile.json`. Initialized during the startup procedure (`references/startup-procedure.md`).
 
@@ -326,9 +381,17 @@ Stored at `newsletter-workspace/vault/user-profile.json`. Initialized during the
 {
   "name": "string",
   "occupation": "string",
+  "field_of_study": "string",
   "daily_focus": "string",
   "core_expertise_domains": ["string"],
   "target_learning_domains": ["string"],
+  "curiosity_sparks": [
+    {
+      "topic": "string",
+      "connection_to_profession": "string",
+      "spark_reason": "string"
+    }
+  ],
   "domain_mastery": {
     "domain_slug": "beginner | intermediate | advanced | expert"
   },

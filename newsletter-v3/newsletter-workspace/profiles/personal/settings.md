@@ -13,8 +13,8 @@ sends_per_day: 3
 slot_times: ["08:00", "13:00", "18:00"]
 batch_time: "03:00"        # INTERMEDIATE AGENT cron: batch-research/write/evaluate ALL of today's editions
 delivery_days: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
-email: lamweiheng124@gmail.com
-timezone: Etc/UTC
+email: null
+timezone: auto
 rolling_window_days: 3
 new_topic_priority: ultimate
 allow_topic_split: true

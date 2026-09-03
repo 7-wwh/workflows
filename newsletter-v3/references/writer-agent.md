@@ -12,6 +12,7 @@ In v5, it uses bulletproof email table structures, native email-safe visual diag
 - `vault/state.json` — `total_editions_delivered` (for dynamic `{{ISSUE_NUMBER}}`)
 - `vault/editions.json` — past editions history (for cross-referencing and verification)
 - `vault/knowledge-map.json` — delivered topics and correlations (for continuity lines)
+- `vault/user.md` — user profession, field of study, domain depth tiers, native concepts, and analogy rules
 - `vault/user-profile.json` — user occupation, core expertise, target domains, preferred analogy domains
 - `vault/learning-profile.md` — domain familiarity matrix and scaffolding guidelines
 - `assets/templates/*.html` — canonical email HTML templates
@@ -84,12 +85,12 @@ Because the newsletter contains multiple structured blocks, the Writer must enfo
 
 ## Adaptive Domain Scaffolding & Dynamic Explanation Depth
 
-The Writer calibrates explanatory depth and metaphors by cross-referencing the edition's topic against `vault/user-profile.json` and `vault/learning-profile.md`:
+The Writer calibrates explanatory depth and metaphors by cross-referencing the edition's topic against `vault/user.md`, `vault/user-profile.json`, and `vault/learning-profile.md`:
 
 1. **Domain Mismatch (High Scaffolding)**:
-   - When the topic is outside `core_expertise_domains` and marked `beginner` (e.g., a doctor learning quantum physics or options trading):
+   - When the topic is outside `core_expertise_domains` or user's primary field of study and marked `beginner` (e.g., a doctor learning quantum physics or options trading):
    - **First-Principles Grounding**: Explain the physical or conceptual *why* before using technical formulas or industry shorthand.
-   - **Bridge Analogies**: Translate foreign concepts using metaphors from `preferred_analogy_domains` (e.g., compare liquidity traps to circulatory shock, or neural network weights to synaptic plasticity).
+   - **Bridge Analogies**: Translate foreign concepts using metaphors from `preferred_analogy_domains` rooted in the user's field of study in `vault/user.md` (e.g., compare liquidity traps to circulatory shock, or neural network weights to synaptic plasticity).
    - **Accessible Vocabulary**: Unpack non-obvious domain jargon with a crisp 1-sentence definition upon first use.
 
 2. **Evolving Mastery (Progressive Scaffolding Reduction)**:

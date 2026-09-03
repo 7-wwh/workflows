@@ -11,7 +11,8 @@ Because each slot has its own distinct file destination (`research/<date>-slot-<
 
 - One `slots[M]` slice from `plan.json` (theme, headline, objectives, research_brief, depth)
 - `vault/knowledge-map.json` (to avoid re-explaining mastered concepts)
-- `vault/user-profile.json` & `vault/learning-profile.md` (user background, domain familiarity, analogy preferences)
+- `vault/user.md` (authoritative profession, field of study, depth tiers, analogy preferences)
+- `vault/user-profile.json` & `vault/learning-profile.md` (domain familiarity tiers, scaffolding rules)
 - `config.json → research_rules` (Tavily configuration, domain allow/block lists, search depth)
 
 ## Output
@@ -28,7 +29,7 @@ Because each slot has its own distinct file destination (`research/<date>-slot-<
 2. **Mechanism & Diagram query**: `"{theme}" architecture diagram how it works step by step` (pass `include_images: true`) → technical flow + schematic visuals
 3. **Data & Metrics query**: `"{theme}" statistics benchmarks comparison market share numbers` → numbers for comparison bar charts
 4. **Insight & Misconception query**: `"{theme}" surprising counterintuitive misconception failure mode` → memorable non-obvious angle
-5. **Domain-Mismatch & Metaphor query**: When topic is outside user's `core_expertise_domains` (per `vault/user-profile.json`), run: `"{theme}" intuitive analogy mental model explained simply` and `"{theme}" analogy {preferred_analogy_domain}` to supply the Writer with first-principles bridges.
+5. **Domain-Mismatch & Metaphor query**: When topic is outside user's `core_expertise_domains` or field of study (per `vault/user.md`), run: `"{theme}" intuitive analogy mental model explained simply` and `"{theme}" analogy {preferred_analogy_domain}` to supply the Writer with first-principles bridges.
 6. **Source variety**: Aim for 3–5 diverse, reputable sources (official documentation, Wikimedia Commons, engineering teardowns, academic summaries, industry case studies).
 
 ---

@@ -85,29 +85,122 @@ The agent executes the automated registration using either method:
 
 ---
 
-### Phase 2 — Professional Background & Knowledge Profile
+### Phase 2 — High-Priority Profile Calibration & Diagnostic Intake
 
-To personalize explanations, analogies, and pacing, ask the user about their professional and educational background:
+> [!IMPORTANT]
+> **CRITICAL PRIORITY & NON-NEGOTIABLE GATE**:
+> Gathering rich, precise, high-fidelity details about the user's profession, field of study, native domain fluency, and intellectual curiosity triggers is of **THE HIGHEST IMPORTANCE AND PRIORITY**.
+> Generic user profiles produce generic newsletters. The agent must invest the necessary effort to ask the **right precision questions** and probe deeper to extract the nuances of the user's background, current expertise depth, and intellectual interests.
+
+#### The 6 Precision Diagnostic Questions (The Right Questions to Ask)
+
+When conducting the profile intake interview, present these focused questions:
 
 ```
-To ensure every edition is explained at the exact right depth for you:
+To ensure every edition is calibrated to your exact background, explains concepts with the right depth, and surfaces unexpected ideas that spark your curiosity:
 
-1. Current Role & Daily Focus: What is your occupation or what are you currently working on / studying? (e.g. "Cardiologist in clinical research", "Junior Frontend Developer", "Corporate Finance Analyst")
-2. Core Expertise Domains: What fields do you already know deeply and feel comfortable with? (e.g. Medicine, Human Biology, Statistics, JavaScript, Equity Valuation)
-3. Target Learning Interests: What domains do you want this newsletter to teach you? (e.g. Quantum Physics, Distributed Systems, Macroeconomics, Modern Philosophy)
-4. Analogy Preferences: When explaining concepts outside your field, would you like analogies connected to your core domain? (e.g. "Explain physics or tech concepts using biological/physiological metaphors where possible")
+1. 💼 Profession, Current Role & Daily Mechanics:
+   What is your exact job title, profession, or daily work focus? What specific systems, problems, workflows, or methodologies do you engage with every day?
+   (e.g., "Staff Distributed Systems Engineer building high-throughput streaming pipelines", "Cardiologist running clinical drug trials and imaging", "Macroeconomic Quantitative Analyst")
+
+2. 🎓 Field of Study & Academic/Technical Discipline:
+   What is your primary educational, academic, or technical discipline, and what core sub-specializations did you train in?
+   (e.g., "Computer Science with focus on Compiler Design & Distributed State", "Cardiovascular Physiology & Pharmacokinetics", "Applied Mathematics & Econometrics")
+
+3. 🧠 Depth of Study & Native Fluency (The "Zero-101s" Invariant):
+   What foundational concepts, jargon, theories, and mental models do you know inside out, where you NEVER want introductory or 101 explanations?
+   (e.g., "Raft consensus, memory barriers, lockless data structures", "Hemodynamics, receptor affinity, ischemia", "Stochastic calculus, Black-Scholes, options greeks")
+
+4. 🎯 Target Learning Horizons & Specific Topics:
+   What specific domains, technologies, or subjects do you want this newsletter to teach you, and what specific mechanics do you want demystified?
+   (e.g., "Quantum Computing (qubit coherence and gate algorithms)", "Bio-mechanics and prosthetic engineering", "High-performance Rust async runtimes")
+
+5. 💡 Interdisciplinary Curiosity & Spark Triggers:
+   What unexpected, adjacent, or cross-disciplinary intersections spark your curiosity or fascination?
+   (e.g., "Applying biological immune systems to network security", "Physics models applied to financial markets", "Biomimicry in aerospace engineering")
+
+6. 🌉 Pedagogical, Analogy & Depth Calibration:
+   Would you like concepts outside your field explained using metaphors and analogies drawn from your primary field of study? What information density and style do you prefer?
+   (e.g., "Explain complex physics or financial concepts using software architecture / distributed systems analogies where possible; prefer high technical density over superficial fluff")
 ```
 
 ---
 
-### Phase 3 — Persisting the User Profile
+#### The Adaptive Probing Protocol (Follow-Up to Get the Best Information)
 
-Once the user responds, extract structured metadata and write to `vault/user-profile.json`:
+If the user gives brief, generic, or underspecified answers (e.g., *"I'm a developer and want to learn AI"* or *"I'm in finance"*), the agent **MUST NOT immediately proceed to Phase 3**. The agent must ask smart, targeted follow-up probing questions:
+
+- **If profession/role is vague**:
+  - *"To help us tailor the technical depth: What specific tools, languages, or architectural challenges do you work on most frequently? Are you more focused on infrastructure, algorithms, or product architecture?"*
+- **If field of study / depth is vague**:
+  - *"What are 2 or 3 technical concepts in your field that you consider second nature? That will help us set the baseline so we never bore you with basics in those areas."*
+- **If target topics are broad**:
+  - *"For [Domain]: Are you looking to explore it from an applied practitioner lens, a theoretical first-principles perspective, or an architecture/case-study angle?"*
+
+Only when the agent has collected concrete, actionable answers should it proceed to persist the profile in Phase 3.
+
+---
+
+### Phase 3 — Persisting the User Profile (vault/user.md & vault/user-profile.json)
+
+Once the user responds, extract structured metadata and write **BOTH** `vault/user.md` (human-readable authoritative profile) and `vault/user-profile.json`:
+
+#### 1. Write `vault/user.md`:
+
+```markdown
+# User Profile & Professional Specialization
+
+Last updated: [ISO8601]
+
+## 1. Professional Identity & Background
+- **Name / Identifier**: [User Name or Handle]
+- **Primary Occupation / Profession**: Cardiologist & Clinical Researcher
+- **Field of Study / Discipline**: Medicine & Cardiovascular Physiology
+- **Current Role & Daily Focus**: Clinical trials, cardiology diagnostics, and patient data analytics
+- **Experience Level / Seniority**: Senior Clinical Specialist (10+ years)
+
+## 2. Core Specialty & Domain Mastery
+- **Primary Field of Study**: Medicine / Cardiology (Mastery: Expert)
+- **Sub-Disciplines & Specializations**:
+  - Cardiovascular Diagnostics: Advanced clinical imaging and hemodynamics
+  - Clinical Pharmacology: Drug trial protocols and pharmacokinetics
+- **Native Concepts & Terminology** (Zero 101 explanations needed — assume high fluency):
+  - Hemodynamics, cellular receptors, ischemia, clinical trial power, pharmacokinetics
+
+## 3. Knowledge Depth & Familiarity Matrix
+| Domain / Field | Category | Current Depth Tier | Evolution & Notes |
+|---|---|---|---|
+| Medicine / Cardiology | Native Specialty | Expert | Skip foundational basics; high technical rigor |
+| Quantum Physics | Target Interest | Beginner | Needs intuitive first-principles scaffolding |
+| Machine Learning | Target Interest | Beginner | Bridge with statistical clinical data models |
+
+## 4. Learning Interests & Curiosity Spark Engine
+### Active Learning Objectives
+- Quantum Physics: Quantum computing principles and qubit coherence
+- Machine Learning: Neural network architectures and transformer attention
+
+### Curiosity Sparks (Cross-Disciplinary Discovery)
+> Emerging, serendipitous topics identified on recurring runs connecting the user's field of study to adjacent or novel domains to spark new intellectual curiosity:
+- **Bio-Quantum Sensors**: How quantum entanglement is revolutionizing molecular cardiac diagnostics.
+- **Physics-Informed Neural Networks in Fluid Dynamics**: Modeling aortic blood flow with neural differential equations.
+
+## 5. Pedagogical & Content Calibration Rules
+- **Preferred Analogy Domains**: Medicine, Human Physiology, Biology
+- **Scaffolding Strategy**: Heavy first-principles scaffolding for non-native domains using biological metaphors; skip basics in medical domains.
+- **Tone & Narrative Style**: Friendly-professional, high information density, story-first
+- **Anti-Repetition & Depth Progression**: Automatically elevate depth as editions are completed.
+
+## 6. Profile Evolution & Discovery History
+- [ISO8601]: Initial profile created during onboarding.
+```
+
+#### 2. Write `vault/user-profile.json`:
 
 ```json
 {
   "name": "User Name or Handle",
   "occupation": "Cardiologist & Clinical Researcher",
+  "field_of_study": "Medicine & Cardiovascular Physiology",
   "daily_focus": "Clinical trials, cardiology diagnostics, and patient data analytics",
   "core_expertise_domains": [
     "medicine",
@@ -120,6 +213,18 @@ Once the user responds, extract structured metadata and write to `vault/user-pro
     "quantum_physics",
     "machine_learning",
     "options_trading"
+  ],
+  "curiosity_sparks": [
+    {
+      "topic": "Bio-Quantum Sensors in Cardiac Diagnostics",
+      "connection_to_profession": "Bridges quantum coherence with molecular cardiovascular imaging",
+      "spark_reason": "Applies deep quantum mechanics directly to medical research"
+    },
+    {
+      "topic": "Physics-Informed Neural Networks in Hemodynamics",
+      "connection_to_profession": "Combines fluid mechanics and machine learning with vascular flow",
+      "spark_reason": "High cross-disciplinary relevance to daily cardiology practice"
+    }
   ],
   "domain_mastery": {
     "medicine": "expert",
@@ -146,7 +251,7 @@ Then immediately generate the initial `vault/learning-profile.md` incorporating 
 
 ## The Adaptive Domain-Mismatch & Scaffolding Engine
 
-Every agent (Planner, Researcher, Writer) reads `vault/user-profile.json` and `vault/learning-profile.md` before generating content.
+Every agent (Planner, Researcher, Writer) reads `vault/user.md`, `vault/user-profile.json`, and `vault/learning-profile.md` before generating content.
 
 ### 1. The Domain Mismatch Principle
 
@@ -168,13 +273,15 @@ As editions are delivered, the user's domain mastery **evolves**:
    - **Beginner → Intermediate**: After 2–3 delivered editions in a domain with 0 confusion signals, or when the user demonstrates understanding in a follow-up.
    - **Intermediate → Advanced**: After 5+ editions covering complex sub-mechanisms.
 3. **Automatic Adjustment of Explanations**:
-   - The Vault Manager updates `vault/user-profile.json → domain_mastery` and `vault/learning-profile.md`.
+   - The Vault Manager updates `vault/user.md`, `vault/user-profile.json → domain_mastery`, and `vault/learning-profile.md`.
    - **Subsequent editions on that topic will automatically explain with less basic detail**:
      - Phasing out elementary definitions ("As we established in Edition #3...").
      - Shifting from basic analogies to native domain precision.
      - Elevating to advanced nuances, operational failure modes, and edge cases.
-4. **Confusion Signal Fallback**:
-   - If the user responds with "I'm confused about X" or "I didn't understand Y", the Vault Manager logs a gap, temporarily dials back the domain tier, and injects a foundational clarification slot into the next plan.
+4. **Recurring Curiosity Spark Discovery**:
+   - On recurring runs, the Vault Manager analyzes the user's field of study and emerging concepts to generate new curiosity sparks in `vault/user.md`.
+5. **Confusion Signal Fallback**:
+   - If the user responds with "I'm confused about X" or "I didn't understand Y", the Vault Manager logs a gap, temporarily dials back the domain tier in `vault/user.md`, and injects a foundational clarification slot into the next plan.
 
 ---
 
@@ -184,7 +291,8 @@ Before exiting the startup procedure, verify:
 - [ ] `settings.md` is updated with valid email, slot times, batch time, timezone, and topic pacing.
 - [ ] Automated Hermes Cron jobs (`newsletter:<profile>-batch`, `newsletter:<profile>-send`, `newsletter:maintain-all`) registered and verified.
 - [ ] `vault/state.json` records `cron_installed: true` and `cron_provider: "hermes"`.
+- [ ] `vault/user.md` is written and populated with occupation, field of study, depth tiers, and initial curiosity sparks.
 - [ ] `vault/user-profile.json` is written and populated.
 - [ ] `vault/learning-profile.md` contains the user's background, core domains, and initial scaffolding rules.
 - [ ] Confirm setup to the user in a clean summary and invite their first topic request:
-  > "All set! Your profile and schedule are locked in. What topic would you like to explore first?"
+  > "All set! Your profile, profession details, and schedule are locked in. What topic would you like to explore first?"

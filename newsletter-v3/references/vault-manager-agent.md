@@ -12,13 +12,15 @@ It runs after every INTAKE event and after every delivered edition. Its job is t
 - `vault/editions.json` — all delivered editions (append-only history)
 - `vault/knowledge-map.json` — current state (read + update)
 - `vault/followups.json` — queued follow-up questions (read + update)
+- `vault/user.md` — authoritative user professional profile, field of study, and curiosity spark engine (read + update)
 - `vault/user-profile.json` — user background, active focus, domain mastery tiers (read + update)
 
 ## Outputs
 
 - `vault/knowledge-map.json` — updated
 - `vault/followups.json` — updated (new items added, addressed items marked resolved)
-- `vault/user-profile.json` — updated domain familiarity tiers
+- `vault/user.md` — updated domain familiarity tiers, recurring specialty analysis, and refreshed curiosity sparks
+- `vault/user-profile.json` — updated domain familiarity tiers and curiosity sparks
 - `vault/learning-profile.md` — rewritten in full each run
 - `vault/state.json` — updated with last-run timestamp and next-due time
 
@@ -155,18 +157,34 @@ The Planner reads `gaps[]` first when deciding what to cover next.
 
 ## 5. Domain Mastery Progression & Profile Sync
 
-Read `vault/user-profile.json`. For each domain associated with delivered topics:
+Read `vault/user.md` and `vault/user-profile.json`. For each domain associated with delivered topics:
 
 1. **Calculate Mastery Tier**:
-   - **`expert`**: Domains explicitly listed in `core_expertise_domains` from onboarding.
+   - **`expert`**: Domains explicitly listed in `core_expertise_domains` or user's primary field of study from onboarding.
    - **`advanced`**: 5+ delivered editions covering complex mechanisms with 0 unresolved confusion signals.
    - **`intermediate`**: 2–3 delivered editions in this domain, or user demonstrated accurate application in follow-up questions.
    - **`beginner`**: <2 editions, or user explicitly requested introductory coverage.
 2. **Handle Confusion Signals**:
-   - If user asks follow-up confusion questions ("I didn't understand X"), retain or dial back the domain tier and generate a gap entry.
+   - If user asks follow-up confusion questions ("I didn't understand X"), retain or dial back the domain tier in `vault/user.md` and generate a gap entry in `knowledge-map.json`.
 3. **Persist Updates**:
-   - Write updated tiers back to `vault/user-profile.json → domain_mastery`.
+   - Write updated tiers back to `vault/user-profile.json → domain_mastery` and `vault/user.md § 3 (Knowledge Depth & Familiarity Matrix)`.
    - Update `vault/learning-profile.md` scaffolding rules: as a domain moves from `beginner` to `intermediate`/`advanced`, instruct Writer to phase out basic 101 definitions and explain with less foundational hand-holding.
+
+---
+
+## 5b. Recurring Specialty Analysis & Curiosity Spark Discovery
+
+On each recurring run, the Vault Manager analyzes the user's field of study and reading patterns:
+
+1. **Specialty & Depth Identification**:
+   - Analyzes recent editions and user follow-up questions to identify specific sub-disciplines where the user demonstrates high interest or advanced knowledge.
+   - Records these in `vault/user.md § 2 (Core Specialty & Domain Mastery)`.
+2. **Curiosity Spark Generation**:
+   - Identifies cross-disciplinary intersections between the user's field of study / profession and newly introduced topics in `knowledge-map.json`.
+   - Formulates 2–3 fresh **Curiosity Sparks**: unique topics that bridge the user's profession with cutting-edge or unexpected concepts (e.g. quantum computing applications in medicine for a doctor, or game theory for a software engineer).
+   - Updates `vault/user.md § 4` and `vault/user-profile.json → curiosity_sparks[]`.
+3. **Audit Log**:
+   - Appends an entry to `vault/user.md § 6 (Profile Evolution & Discovery History)`.
 
 ---
 

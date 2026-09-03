@@ -10,6 +10,7 @@ vault state: what they've covered, what confused them, and what topics correlate
 - `vault/knowledge-map.json` — topic statuses, gaps, correlations
 - `vault/followups.json` — prioritised follow-up questions
 - `vault/learning-profile.md` — user's knowledge frontier
+- `vault/user.md` — user profession, field of study, domain depth tiers, and curiosity sparks
 - `newsletter-workspace/settings.md` — **authoritative settings**: sends_per_day,
   slot_times, delivery_days, rolling_window_days, new_topic_priority, allow_topic_split, topic_pacing
 - `newsletter-workspace/content_plan.md` — the current forward-looking plan (may be empty)
@@ -105,17 +106,17 @@ When `settings.md → new_topic_priority == "ultimate"` (the default):
    - When `settings.md → topic_pacing == "dense"` (default): assign all chunks of the topic to **consecutive upcoming delivery slots** across `slot_times` (e.g., today 08:00, 13:00, 18:00). Do not space them across separate calendar days if slots are available today.
    - When `settings.md → topic_pacing == "spaced"`: assign at most 1 chunk per calendar day, and immediately fill the remaining daily delivery slots with distinct topics, gaps, or correlation bridges. Under no circumstances may intermediate daily slots be left `EMPTY`.
 
-### Step C — Fill remaining slots
+### Step C — Fill remaining slots & Spark Curiosity
 
 From `knowledge-map.json → topics[]` where `status == "queued"` (plus the Backlog
 section of `content_plan.md`, oldest first), fill slots that remain after Step C′.
 Pick topics that:
 1. Have not been `delivered` at the current depth level.
 2. Correlate with recently delivered topics (prefer `strength: strong` bridges).
-3. Were recommended in `learning-profile.md → Recommended Next Topics`.
+3. Were recommended in `learning-profile.md → Recommended Next Topics` or **`vault/user.md § 4 (Curiosity Sparks)`** to bridge the user's field of study with novel interdisciplinary horizons and ignite curiosity.
 
 Prioritise correlation bridging: if a new topic shares concepts with the most recent
-delivered topic, note the bridge in `research_brief`.
+delivered topic or connects to the user's field of study in `vault/user.md`, note the bridge in `research_brief`.
 
 ### Step D — Distribute across the slot grid
 
@@ -128,18 +129,20 @@ Read `sends_per_day`, `slot_times`, `delivery_days`, and `rolling_window_days` f
   1. Priority follow-up slots (`vault/followups.json`)
   2. Urgent/soon knowledge-map gaps (`vault/knowledge-map.json → gaps[]`)
   3. Queued topics & Backlog (`vault/knowledge-map.json → topics[]`)
-  4. Correlated companion topics or case studies from `learning-profile.md`
+  4. Curiosity Sparks from `vault/user.md § 4` (cross-disciplinary topics tied to user's profession)
+  5. Correlated companion topics or case studies from `learning-profile.md`
 - Each slot gets:
   - One main topic-part (or gap resolution)
   - One optional follow-up slot (if `priority: "soon"` items exist)
-  - 2–3 learning objectives calibrated to `depth` in `config.json`
+  - 2–3 learning objectives calibrated to domain depth in `vault/user.md` and `config.json`
   - A designated `template_type` assigned by matching the topic nature to available templates in `assets/templates/` (or `"custom"`)
 - Trailing slots at the end of the rolling window may stay `EMPTY` only if no other topics, gaps, or correlations exist. Interleaved empty slots are strictly forbidden.
 
-Depth calibration (unchanged from v1):
-- **Beginner**: focus on what/why; avoid how
-- **Intermediate**: include how; introduce trade-offs
-- **Advanced**: include edge cases, comparisons, deeper mechanisms
+Depth calibration (vault & profession-aware):
+- **Native Domain (user's field of study / expert)**: skip 101 definitions; focus directly on advanced mechanisms, architectural trade-offs, and frontier research.
+- **Beginner (non-native domain)**: focus on first principles and intuitive analogies connected to `preferred_analogy_domains` from `vault/user.md`.
+- **Intermediate**: include operational mechanics and practical trade-offs.
+- **Advanced**: include edge cases, comparative benchmarks, and failure modes.
 
 ### Step E — Write research briefs
 
